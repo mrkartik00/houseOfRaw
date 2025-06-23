@@ -1,26 +1,31 @@
 import express from 'express';
-import 'dotenv/config'
+import 'dotenv/config';
 import cors from 'cors';
 import connectDB from './config/mongodb.js';
 import connectCloudinary from './config/cloudinary.js';
+import userRouter from './routes/userRoutes.js';
 
-//app config
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// ✅ Connect database and cloudinary
 connectDB();
 connectCloudinary();
 
-//middleware
-app.use(express.json());
+// ✅ Middleware
 app.use(cors());
+app.use(express.json()); // parse application/json
+app.use(express.urlencoded({ extended: true })); // parse x-www-form-urlencoded
 
-
-//api endpoints
+// ✅ API Endpoints
 app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
-//start the server
-app.listen(PORT,()=>{
-    console.log(`Server is running on port ${PORT}`);
-})
+// ✅ User routes
+app.use('/api/users', userRouter);
+
+// ✅ Start server
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
