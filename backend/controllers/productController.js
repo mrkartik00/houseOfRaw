@@ -124,8 +124,8 @@ const removeProduct = async (req, res) => {
 // Get single product by ID
 const singleProduct = async (req, res) => {
   try {
-    const {productId} = req.body;
-    const product = await productModel.findById(productId);
+    const {id} = req.body;
+    const product = await productModel.findById(id);
      res.json({
       success: true,
       product,

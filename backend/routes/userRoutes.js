@@ -5,7 +5,8 @@ import { registerUser,
     getUserDetails,
     updateUserDetails,
     updateUserPassword,
-    deleteUserAccount
+    deleteUserAccount,
+    adminLogin
 } from '../controllers/userController.js';
 
 const userRouter = express.Router();
@@ -17,5 +18,6 @@ userRouter.get('/details', getUserDetails);
 userRouter.put('/update', updateUserDetails);
 userRouter.put('/update-password', updateUserPassword);
 userRouter.delete('/delete', deleteUserAccount);
+userRouter.post('/admin',adminLogin);
 
 export default userRouter;

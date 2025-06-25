@@ -1,6 +1,7 @@
 import validator from "validator";
 import JsonWebToken from "jsonwebtoken";
 import User from "../models/usermodel.js";
+import jwt from "jsonwebtoken";
 
 // Create JWT token function
 const createToken = (id) => {
@@ -113,7 +114,32 @@ const updateUserPassword = async (req, res) => {};
 const deleteUserAccount = async (req, res) => {};
 
 //admin login
-const adminLogin = async (req, res) => {};
+
+
+const adminLogin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
+      const token = jwt.sign(email+password,process.env.JWT_SECRET)
+      return res.json({
+        success: true,
+        token,
+      });
+    } else {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid admin credentials",
+      });
+    }
+  } catch (error) {
+    console.error("Admin login error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error logging in admin",
+    });
+  }
+};
 
 export {
   registerUser,
