@@ -10,7 +10,7 @@ productController.post('/add',adminAuth,upload.fields([{name:'image1', maxCount:
 // Route to remove a product
 productController.get('/remove',adminAuth, removeProduct);
 // Route to list all products
-productController.get('/list',adminAuth, listProducts);
+productController.get('/list', listProducts);
 // Route to get a single product by ID
 productController.get('/single', singleProduct);
 
