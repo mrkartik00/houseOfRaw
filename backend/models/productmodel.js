@@ -43,17 +43,18 @@ const productSchema = new mongoose.Schema({
     min: 0,
     default: 0,
   },
-  size: {  
-    type: String,
-    required: true,
-    enum: ["XS", "S", "M", "L", "XL", "XXL"],
-  },
+  sizes: {
+  type: [String],
+  enum: ["XS", "S", "M", "L", "XL", "XXL"],
+  required: true
+},
   ratings: {
     type: Number,
     min: 0,
     max: 5,
     default: 0,
   },
+
   reviews: [
     {
       user: {
@@ -79,8 +80,15 @@ const productSchema = new mongoose.Schema({
       },
     },
   ],
+  sold: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+
 });
 
-const productModel = mongoose.models.product|| mongoose.model("product", productSchema);
+const productModel =
+  mongoose.models.product || mongoose.model("product", productSchema);
 
 export default productModel;

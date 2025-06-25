@@ -4,6 +4,7 @@ import cors from 'cors';
 import connectDB from './config/mongodb.js';
 import connectCloudinary from './config/cloudinary.js';
 import userRouter from './routes/userRoutes.js';
+import productController from './routes/productRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,6 +25,9 @@ app.get('/', (req, res) => {
 
 // ✅ User routes
 app.use('/api/users', userRouter);
+
+// Product routes
+app.use('/api/products', productController);
 
 // ✅ Start server
 app.listen(PORT, () => {
