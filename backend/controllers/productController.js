@@ -72,19 +72,44 @@ const addProduct = async (req, res) => {
 //list all products
 const listProducts = async (req, res) => {
   try {
-    const products = await productModel.find({});
-    res.json({
-      success: true,
-      products,
-    });
-  } catch (error) {
-    console.log(error);
-    res.json({
-      success: false,
-      message: error.message,
-    });
+    const {
+      category,
+      color,
+      size,
+      material,
+      minPrice,
+      maxPrice,
+      sortBy
+    } = req.query;
+
+    let query = {};
+
+    if (category) query.category = category;
+    if (color) query.color = color;
+    if (size) query.sizes = { $in: size.split(',') };
+    if (material) query.material = { $in: material.split(',') };
+    if (minPrice || maxPrice) {
+      query.price = {
+        ...(minPrice ? { $gte: Number(minPrice) } : {}),
+        ...(maxPrice ? { $lte: Number(maxPrice) } : {})
+      };
+    }
+
+    let productQuery = productModel.find(query);
+
+    if (sortBy === 'priceAsc') productQuery = productQuery.sort({ price: 1 });
+    else if (sortBy === 'priceDesc') productQuery = productQuery.sort({ price: -1 });
+    else if (sortBy === 'popularity') productQuery = productQuery.sort({ sold: -1 });
+
+    const products = await productQuery;
+    res.json({ success: true, products });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: err.message });
   }
 };
+
 
 // Remove product by ID
 const removeProduct = async (req, res) => {
@@ -124,21 +149,72 @@ const removeProduct = async (req, res) => {
 // Get single product by ID
 const singleProduct = async (req, res) => {
   try {
-    const {id} = req.body;
-    const product = await productModel.findById(id);
-     res.json({
-      success: true,
-      product,
-    });
-    
+    const { id } = req.query; // ✅ not req.body
+    if (!id) return res.status(400).json({ message: "Product ID is required" });
+
+    const product = await Product.findById(id);
+    if (!product) return res.status(404).json({ message: "Product not found" });
+
+    res.status(200).json({ product });
   } catch (error) {
-    console.log(error);
-    res.json({
-      success: false,
-      message: error.message,
-    });
-    
+    res.status(500).json({ message: "Something went wrong", error });
   }
 };
 
-export { addProduct, listProducts, removeProduct, singleProduct };
+// GET /api/products/related/:id
+// controller/productController.js
+const getRelatedProducts = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: "Product not found" });
+
+    const related = await Product.find({
+      _id: { $ne: product._id },
+      subcategory: product.subcategory,
+    }).limit(10);
+
+    res.json(related);
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const getAllProducts = async (req, res) => {
+  const { sortBy } = req.query;
+  let sort = {};
+
+  switch (sortBy) {
+    case 'priceAsc':
+      sort.price = 1;
+      break;
+    case 'priceDesc':
+      sort.price = -1;
+      break;
+    case 'popularity':
+      sort.sold = -1;
+      break;
+    case 'newest':
+      sort.createdAt = -1;
+      break;
+    case 'rating':
+      sort.ratings = -1;
+      break;
+    default:
+      sort.createdAt = -1; // Default fallback: newest first
+      break;
+  }
+
+  try {
+    const products = await productModel.find().sort(sort);
+    res.status(200).json(products);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch products" });
+  }
+};
+
+
+
+
+
+
+export { addProduct, listProducts, removeProduct, singleProduct, getRelatedProducts, getAllProducts };

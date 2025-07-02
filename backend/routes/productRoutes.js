@@ -1,5 +1,5 @@
 import express from 'express';
-import { addProduct,removeProduct,listProducts,singleProduct } from '../controllers/productController.js';
+import { addProduct,removeProduct,listProducts,singleProduct, getRelatedProducts, getAllProducts } from '../controllers/productController.js';
 import upload from '../middlewares/multer.js';
 import adminAuth from '../middlewares/adminAuth.js';
 
@@ -13,5 +13,10 @@ productController.get('/remove',adminAuth, removeProduct);
 productController.get('/list', listProducts);
 // Route to get a single product by ID
 productController.get('/single', singleProduct);
+
+productController.get('/related/:id', getRelatedProducts);
+
+productController.get('/',getAllProducts);
+
 
 export default productController;
