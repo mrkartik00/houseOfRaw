@@ -32,7 +32,7 @@ const ProductDetails = () => {
 
         const related = await fetchRelatedProducts(id);
         setRelatedProducts(Array.isArray(related) ? related : []);
-      } catch (err) {
+      } catch (error) {
         toast.error("Failed to load product");
       }
     };
