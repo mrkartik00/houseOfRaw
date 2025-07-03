@@ -15,7 +15,7 @@ connectDB();
 connectCloudinary();
 
 //  Middleware
-app.use(cors());
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
 app.use(express.json()); // parse application/json
 app.use(express.urlencoded({ extended: true })); // parse x-www-form-urlencoded
 
@@ -25,7 +25,7 @@ app.get("/", (req, res) => {
 });
 
 // User routes
-app.use("/api/users", userRouter);
+app.use("/api/user", userRouter);
 
 // Product routes
 app.use("/api/products", productController);

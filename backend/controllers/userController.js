@@ -72,44 +72,143 @@ const registerUser = async (req, res) => {
 // Login a user Route
 const loginUser = async (req, res) => {
   try {
-    const{email, password} = req.body;
-    const user = await User.findOne({
-      email: email,
-    });
-    if(!user) {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
       return res.status(404).json({
         success: false,
         message: "User not found",
       });
     }
-    // Check password
-    const isMatch = await user.matchPassword(password);
-    if(isMatch) {
-      // Create JWT token
-      const token = createToken(user._id);
 
-      res.json({
-        success: true,
-        token
+    const isMatch = await user.matchPassword(password);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Incorrect password",
       });
     }
+
+    const token = createToken(user._id);
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+      token,
+    });
   } catch (error) {
-    console.log(error);
-    res.json({
+    console.error("Login error:", error);
+    return res.status(500).json({
       success: false,
       message: "Error logging in user",
     });
   }
 };
 
+
 // Logout a user Route
-const logoutUser = async (req, res) => {};
-// Get user details
-const getUserDetails = async (req, res) => {};
+const logoutUser = async (req, res) => {
+  try {
+    // On frontend: simply remove token from localStorage/cookies.
+    res.status(200).json({
+      success: true,
+      message: "User logged out successfully",
+    });
+  } catch (error) {
+    console.error("Logout error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error logging out",
+    });
+  }
+};
+
+
+const getUserDetails = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select("-password");
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    console.error("Error fetching user details:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching user details",
+    });
+  }
+};
 // Update user details
-const updateUserDetails = async (req, res) => {};
+
+
+const updateUserDetails = async (req, res) => {
+  try {
+    const { name, email, phone } = req.body;
+
+    if (email && !validator.isEmail(email)) {
+      return res.status(400).json({ success: false, message: "Invalid email format" });
+    }
+
+    if (phone && !validator.isMobilePhone(phone, "any")) {
+      return res.status(400).json({ success: false, message: "Invalid phone number" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.userId,
+      { name, email, phone },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    res.json({
+      success: true,
+      message: "User details updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Update user details error:", error);
+    res.status(500).json({ success: false, message: "Error updating user details" });
+  }
+};
+
+
 // Update user password
-const updateUserPassword = async (req, res) => {};
+const updateUserPassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: "Both passwords are required" });
+    }
+
+    const user = await User.findById(req.userId).select("+password"); // ✅ Fix is here
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const isMatch = await user.matchPassword(oldPassword);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: "Old password is incorrect" });
+    }
+
+    user.password = newPassword; // Will be hashed by pre-save hook
+    await user.save();
+
+    return res.json({ success: true, message: "Password updated successfully" });
+  } catch (error) {
+    console.error("Update password error:", error);
+    return res.status(500).json({ success: false, message: "Error updating password" });
+  }
+};
+
 // Delete user account
 const deleteUserAccount = async (req, res) => {};
 
