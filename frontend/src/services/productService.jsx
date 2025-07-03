@@ -22,4 +22,24 @@ export const fetchRelatedProducts = async (id) => {
   return res.data;
 };
 
+export const addProduct = async (formData, token) => {
+  const response = await axios.post(
+    `${BASE_URL}/add`,
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        // Do NOT set Content-Type manually for FormData
+      },
+    }
+  );
+  return response.data;
+};
 
+export const removeProduct = async (id, token) => {
+  const res = await axios.get(`${BASE_URL}/remove`, {
+    headers: { Authorization: `Bearer ${token}` },
+    data: { id }, // not recommended with GET, but matches your backend for now
+  });
+  return res.data;
+};
