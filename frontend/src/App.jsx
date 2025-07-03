@@ -24,6 +24,13 @@ import FAQs from "./Pages/FAQ.jsx";
 import ScrollToTop from "./Components/ScrollToTop.jsx";
 import TermsOfService from "./Pages/Terms.jsx";
 import PrivacyPolicy from "./Pages/privacy.jsx";
+import AdminLayout from "./Components/Admin/AdminLayout.jsx";
+import AdminHomePage from "./Pages/AdminHomePage.jsx";
+import ProductManagement from "./Components/Admin/ProductManagement.jsx";
+import EditProductPage from "./Components/Admin/EditProductPage.jsx";
+import OrderManagement from "./Components/Admin/OrderManagement.jsx";
+import AddProduct from "./Components/Admin/AddProductPage.jsx";
+import AddProductPage from "./Components/Admin/AddProductPage.jsx";
 
 const App = () => {
   return (
@@ -42,6 +49,7 @@ const App = () => {
             <Route path="register" element={<Register />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/shops/all" element={<Shop />} />
 
             <Route path="profile" element={<Profile />}>
               <Route path="orders" element={<MyOrders />} />
@@ -53,6 +61,13 @@ const App = () => {
             <Route path="product/:id" element={<ProductDetails />} />
             <Route path="/favorites" element={<FavoritesPage />} />
             <Route path="/cart" element={<Cart />} />
+          </Route>
+          <Route path="/admin" element={<AdminLayout />} > 
+          <Route index element={<AdminHomePage />} />
+          <Route path="products" element={<ProductManagement />} />
+          <Route path="products/:id/edit" element={<EditProductPage />} />
+          <Route path="orders" element={<OrderManagement />} />
+          <Route path="products/add" element={<AddProductPage />} />
           </Route>
         </Routes>
         <Toaster position="top-right" richColors closeButton duration={3000} />
