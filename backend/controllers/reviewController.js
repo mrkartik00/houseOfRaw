@@ -1,13 +1,12 @@
 import Product from "../models/productModel.js";
 import mongoose from "mongoose";
-
+import Order from "../models/orderModel.js";
 
 const addProductReview = async (req, res) => {
   try {
-    // Get productId from body (since your route is POST /add)
     const { productId, userId, comment, rating } = req.body;
 
-    // Validation
+    // Validate
     if (!productId || !userId || !comment || typeof rating !== "number") {
       return res.status(400).json({
         success: false,
@@ -24,7 +23,7 @@ const addProductReview = async (req, res) => {
       });
     }
 
-    // Check if user already reviewed
+    // Check if user has already reviewed
     const alreadyReviewed = product.reviews.find(
       (rev) => rev.user.toString() === userId
     );
@@ -32,6 +31,20 @@ const addProductReview = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "You have already reviewed this product",
+      });
+    }
+
+    //  Check if user has purchased this product
+    const hasOrdered = await Order.findOne({
+      user: userId,
+      "orderItems.product": productId,
+      paymentStatus: "Completed", // optional check
+    });
+
+    if (!hasOrdered) {
+      return res.status(403).json({
+        success: false,
+        message: "You can only review products you have purchased",
       });
     }
 
