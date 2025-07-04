@@ -1,6 +1,12 @@
 import Cart from "../models/cartModel.js";
 import orderModel from "../models/orderModel.js";
 import Product from "../models/productModel.js";
+import Razorpay from "razorpay";
+
+const razorpayInstance = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 
 const placeOrder = async (req, res) => {
   try {
@@ -24,7 +30,7 @@ const placeOrder = async (req, res) => {
     }
 
     // Create orderItems for the order
-    const orderItems = cart.items.map(item => ({
+    const orderItems = cart.items.map((item) => ({
       product: item.product,
       quantity: item.quantity,
       price: item.price,
@@ -36,9 +42,9 @@ const placeOrder = async (req, res) => {
       orderItems,
       totalAmount: cart.totalPrice,
       shippingAddress,
-      paymentMethod: "Cash on Delivery",  
-      paymentStatus: "Pending",           
-      orderStatus: "Pending",           
+      paymentMethod: "Cash on Delivery",
+      paymentStatus: "Pending",
+      orderStatus: "Pending",
       isPaid: false,
     });
 
@@ -76,7 +82,8 @@ const placeOrder = async (req, res) => {
 };
 
 // example
-{/*
+{
+  /*
    http://localhost:3000/api/order/placeOrder
   {
   "userId": "665b3a3fc9f7cd5533f0c9d3",
@@ -88,21 +95,102 @@ const placeOrder = async (req, res) => {
     "country": "India"
   }
 }
-  */}
-
+  */
+}
 
 // place order using online razorpay
 const placeOrderRazorpay = async (req, res) => {
-  
+  try {
+    const { userId, orderItems, shippingAddress, totalAmount } = req.body;
+
+    const { origin } = req.headers;
+
+    const orderData = {
+      user: userId,
+      orderItems: orderItems,
+      shippingAddress: shippingAddress,
+      totalAmount: totalAmount,
+      paymentMethod: "Online Payment",
+      paymentStatus: "Pending",
+      orderStatus: "Pending",
+      isPaid: false,
+    };
+
+    const newOrder = new orderModel(orderData);
+    await newOrder.save();
+    const options = {
+      amount: totalAmount * 100, // amount in smallest currency unit
+      currency: "INR",
+      receipt: newOrder._id.toString(),
+      notes: {
+        orderId: newOrder._id.toString(),
+      },
+    };
+    await razorpayInstance.orders.create(options, (error, order) => {
+      if (error) {
+        console.log("Razorpay order creation error:", error);
+        res.json({
+          success: false,
+          message: "Failed to create Razorpay order",
+          error: error.message,
+        });
+      }
+      res.json({
+        success: true,
+        message: "Razorpay order created successfully",
+        order: order,
+        orderId: newOrder._id,
+        amount: totalAmount,
+        currency: "INR",
+        razorpayOrderId: order.id,
+        razorpayKeyId: process.env.RAZORPAY_KEY_ID,
+        razorpayKeySecret: process.env.RAZORPAY_KEY_SECRET,
+        callbackUrl: `${origin}/api/order/verifyPayment`,
+      });
+    });
+  } catch (error) {
+    console.error("Error placing Razorpay order:", error);
+    res.json({
+      success: false,
+      message: "Failed to place Razorpay order",
+      error: error.message,
+    });
+  }
 };
 
+// verify payment using razorpay
+const verifyRazorpay = async (req, res) => {
+  try {
+    const { userId, razorpay_order_id } = req.body;
+    const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id);
+    if (orderInfo.status === "paid") {
+      await orderModel.findByIdAndUpdate(orderInfo.receipt, {
+        paymentStatus: "Paid",
+        isPaid: true,
+        razorpayOrderId: razorpay_order_id,
+      });
+      await Cart.findOneAndUpdate({ user: userId }, { items: [], totalItems: 0, totalPrice: 0 });
+      res.json({
+        success: true,
+        message: "Razorpay payment verified successfully",
+        orderId: orderInfo.receipt,
+      });
+    }
+  } catch (error) {
+    console.error("Error verifying Razorpay payment:", error);
+    res.json({
+      success: false,
+      message: "Failed to verify Razorpay payment",
+      error: error.message,
+    });
+  }
+};
 
 // user order data for frontend
 const getUserOrders = async (req, res) => {
-
   try {
     const userId = req.body;
-    const orders = await orderModel.find({user: userId});
+    const orders = await orderModel.find({ user: userId });
     console.log("User Orders:", orders);
     res.json({
       success: true,
@@ -110,9 +198,9 @@ const getUserOrders = async (req, res) => {
     });
   } catch (error) {
     res.json({
-      success:false,
-      error: error.message
-    })
+      success: false,
+      error: error.message,
+    });
   }
 };
 
@@ -122,7 +210,7 @@ const getSingleOrder = async (req, res) => {};
 // get all orders admin only
 const getAllOrders = async (req, res) => {
   try {
-    const orders = await orderModel.find({})
+    const orders = await orderModel.find({});
     res.json({
       success: true,
       orders: orders,
@@ -130,8 +218,8 @@ const getAllOrders = async (req, res) => {
   } catch (error) {
     res.json({
       success: false,
-      error: error.message
-    })
+      error: error.message,
+    });
   }
 };
 
@@ -139,20 +227,18 @@ const getAllOrders = async (req, res) => {
 const updateOrderStatus = async (req, res) => {
   try {
     const { orderId, status } = req.body;
-  await orderModel.findByIdAndUpdate(orderId, { orderStatus: status })
-  res.json({
-    success: true,
-    message: "Order status updated successfully",
-  });
+    await orderModel.findByIdAndUpdate(orderId, { orderStatus: status });
+    res.json({
+      success: true,
+      message: "Order status updated successfully",
+    });
   } catch (error) {
     res.json({
       success: false,
-      error: error.message
-    })
+      error: error.message,
+    });
   }
-  
 };
-
 
 const getAdminSummary = async (req, res) => {
   try {
@@ -187,6 +273,7 @@ const getAdminSummary = async (req, res) => {
 export {
   placeOrder,
   placeOrderRazorpay,
+  verifyRazorpay,
   getUserOrders,
   getSingleOrder,
   getAllOrders,
