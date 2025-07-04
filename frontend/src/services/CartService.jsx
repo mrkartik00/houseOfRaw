@@ -48,6 +48,7 @@ export const getUserCart = async (userId) => {
       throw new Error(data.message || 'Failed to fetch cart');
     }
     
+    // Return the actual data, not wrapped in another object
     return data;
   } catch (error) {
     console.error('Error fetching cart:', error);

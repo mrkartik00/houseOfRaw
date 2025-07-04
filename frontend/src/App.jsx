@@ -32,6 +32,9 @@ import OrderManagement from "./Components/Admin/OrderManagement.jsx";
 import AddProduct from "./Components/Admin/AddProductPage.jsx";
 import AddProductPage from "./Components/Admin/AddProductPage.jsx";
 import AdminLogin from "./Pages/AdminLogin.jsx";
+import CheckOut from "./Components/Cart/CheckOut.jsx";
+import PaymentsPage from "./Components/Cart/PaymentsPage.jsx";
+import OrderConfirmationPage from "./Components/Cart/OrderConfirmationPage.jsx";
 
 const App = () => {
   return (
@@ -51,6 +54,9 @@ const App = () => {
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/shops/all" element={<Shop />} />
+            <Route path="/checkout" element={<CheckOut />} />
+            <Route path="/payments" element={<PaymentsPage />} />
+            <Route path="order-confirmation" element={<OrderConfirmationPage />} />
 
             <Route path="profile" element={<Profile />}>
               <Route path="orders" element={<MyOrders />} />

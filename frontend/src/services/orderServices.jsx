@@ -38,3 +38,46 @@ export const fetchAdminSummary = async () => {
   return res.data;
 };
 
+
+
+export const placeOrder = async (orderData) => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    return { success: false, message: "Token not found. Please log in again." };
+  }
+
+  try {
+    const response = await axiosInstance.post(
+      "/api/order/placeOrder",
+      orderData,
+      {
+        headers: {
+          token,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Order placement failed:", error);
+    return {
+      success: false,
+      message: error?.response?.data?.message || "Server error",
+    };
+  }
+};
+
+
+export const getUserOrders = async () => {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("Token missing");
+
+  const response = await axiosInstance.get("/api/order/getUserOrders", {
+    headers: {
+      token,
+    },
+  });
+
+  return response.data.orders;
+};

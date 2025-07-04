@@ -19,10 +19,9 @@ const ProductDetails = () => {
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState([]);
-  
+
   const { addToCart, loading: cartLoading } = useCart();
 
-  // Fetch product
   useEffect(() => {
     const loadProduct = async () => {
       try {
@@ -30,8 +29,12 @@ const ProductDetails = () => {
         setProduct(data);
         if (data.image?.[0]) setMainImage(data.image[0]);
 
-        const related = await fetchRelatedProducts(id);
-        setRelatedProducts(Array.isArray(related) ? related : []);
+        const relatedRes = await fetchRelatedProducts(id);
+        if (relatedRes.success && Array.isArray(relatedRes.relatedProducts)) {
+          setRelatedProducts(relatedRes.relatedProducts);
+        } else {
+          setRelatedProducts([]);
+        }
       } catch (error) {
         toast.error("Failed to load product");
       }
@@ -40,7 +43,6 @@ const ProductDetails = () => {
     loadProduct();
   }, [id]);
 
-  // Auto image rotation
   useEffect(() => {
     if (product?.image?.length > 1) {
       const interval = setInterval(() => {
@@ -59,11 +61,11 @@ const ProductDetails = () => {
   const increment = () => {
     if (product && quantity < product.stock) {
       setQuantity(prev => prev + 1);
-    } else if (product && quantity >= product.stock) {
+    } else {
       toast.error(`Only ${product.stock} items available in stock`);
     }
   };
-  
+
   const decrement = () => quantity > 1 && setQuantity(prev => prev - 1);
 
   const handleAddToCart = async () => {
@@ -83,10 +85,9 @@ const ProductDetails = () => {
     }
 
     setIsButtonDisabled(true);
-    
+
     try {
       await addToCart(product._id, selectedSize, selectedColor, quantity);
-      // Reset selections after successful add
       setQuantity(1);
     } catch (error) {
       console.error('Failed to add to cart:', error);
@@ -104,7 +105,6 @@ const ProductDetails = () => {
       <div className='max-w-6xl mx-auto bg-[#c9c9bf46] p-6 sm:p-10 rounded-lg shadow-md'>
         <div className='flex flex-col md:flex-row'>
 
-          {/* Side Thumbnails */}
           <div className='hidden md:flex flex-col space-y-4 mr-6'>
             {product.image.map((img, index) => (
               <img
@@ -120,7 +120,6 @@ const ProductDetails = () => {
             ))}
           </div>
 
-          {/* Main Image */}
           <div className='md:w-1/2'>
             <img
               src={mainImage}
@@ -129,7 +128,6 @@ const ProductDetails = () => {
             />
           </div>
 
-          {/* Mobile Thumbnails */}
           <div className='md:hidden flex overflow-x-scroll gap-3 mb-4 scrollbar-hide'>
             {product.image.map((img, index) => (
               <img
@@ -145,7 +143,6 @@ const ProductDetails = () => {
             ))}
           </div>
 
-          {/* Product Info */}
           <div className='md:w-1/2 md:ml-10'>
             <div className='flex items-center justify-between mb-2'>
               <h1 className='text-3xl font-bold'>{product.name}</h1>
@@ -168,14 +165,13 @@ const ProductDetails = () => {
             </div>
             <p className='text-gray-600 mb-6'>{product.description}</p>
 
-            {/* Stock Information */}
             <div className='mb-4'>
               <p className={`text-sm font-medium ${product.stock > 10 ? 'text-green-600' : product.stock > 0 ? 'text-orange-600' : 'text-red-600'}`}>
                 {product.stock > 10 ? 'In Stock' : product.stock > 0 ? `Only ${product.stock} left in stock` : 'Out of Stock'}
               </p>
             </div>
 
-            {/* Color */}
+            {/* Color selection */}
             <div className='mb-4'>
               <p className='text-gray-700 font-medium'>Color</p>
               <div className='flex mt-2 gap-3'>
@@ -183,13 +179,13 @@ const ProductDetails = () => {
                   ? product.color
                   : typeof product.color === 'string'
                     ? (() => {
-                      try {
-                        const parsed = JSON.parse(product.color);
-                        return Array.isArray(parsed) ? parsed : product.color.split(',').map(c => c.trim());
-                      } catch {
-                        return product.color.split(',').map(c => c.trim());
-                      }
-                    })()
+                        try {
+                          const parsed = JSON.parse(product.color);
+                          return Array.isArray(parsed) ? parsed : product.color.split(',').map(c => c.trim());
+                        } catch {
+                          return product.color.split(',').map(c => c.trim());
+                        }
+                      })()
                     : []
                 ).map((color, index) => (
                   <button
@@ -204,7 +200,7 @@ const ProductDetails = () => {
               {selectedColor && <p className='text-sm text-gray-500 mt-1'>Selected: {selectedColor}</p>}
             </div>
 
-            {/* Size */}
+            {/* Size selection */}
             <div className='mb-4'>
               <p className='text-gray-700 font-medium'>Size</p>
               <div className='flex gap-2 mt-2'>
@@ -220,7 +216,7 @@ const ProductDetails = () => {
               </div>
             </div>
 
-            {/* Quantity */}
+            {/* Quantity and Add to Cart */}
             <div className='mb-6'>
               <p className='text-gray-700 font-medium'>Quantity</p>
               <div className='flex items-center space-x-4 mt-2'>
@@ -242,7 +238,6 @@ const ProductDetails = () => {
               </div>
             </div>
 
-            {/* Add to Cart */}
             <button
               onClick={handleAddToCart}
               disabled={isButtonDisabled || cartLoading || product.stock === 0}
@@ -262,7 +257,6 @@ const ProductDetails = () => {
               }
             </button>
 
-            {/* Details */}
             <div className='mt-6 space-y-4 text-gray-700'>
               <div className='flex items-center gap-3'>
                 <FaTag className='text-gray-500' />
@@ -281,7 +275,7 @@ const ProductDetails = () => {
         </div>
       </div>
 
-      {/* You May Also Like */}
+      {/* Related products */}
       <div className='mt-20'>
         <h2 className='text-2xl text-center font-medium mb-4'>You May Also Like</h2>
         <div className="overflow-x-auto scrollbar-hide">

@@ -2,14 +2,18 @@
   "name": "houseofraw",
   "version": "1.0.0",
   "main": "index.js",
-"scripts": {
-  "dev": "concurrently \"npm run dev --prefix frontend\" \"npm run dev --prefix backend\""
-},
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix frontend\" \"npm run dev --prefix backend\""
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
     "concurrently": "^9.2.0"
+  },
+  "dependencies": {
+    "react-confetti": "^6.4.0",
+    "sonner": "^2.0.6"
   }
 }

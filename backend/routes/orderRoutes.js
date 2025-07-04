@@ -24,7 +24,7 @@ orderRouter.post('/placeOrder',authUser, placeOrder);
 
 // Payment routes
 orderRouter.post('/placeOrderRazorpay', authUser, placeOrderRazorpay);
-orderRouter.get('/getUserOrders', getUserOrders);
+orderRouter.get('/getUserOrders', authUser, getUserOrders);
 
 orderRouter.get("/summary", adminAuth, getAdminSummary);
 // Verify Razorpay payment

@@ -10,32 +10,45 @@ const razorpayInstance = new Razorpay({
 
 const placeOrder = async (req, res) => {
   try {
+    console.log("=== PlaceOrder API Called ===");
+    console.log("Request body:", req.body);
+    console.log("User ID from auth middleware:", req.userId);
+    
     const { userId, shippingAddress } = req.body;
 
     // Validate input
     if (!userId || !shippingAddress || !shippingAddress.pincode) {
+      console.log("Validation failed - missing required fields");
       return res.status(400).json({
         success: false,
         message: "userId and full shippingAddress (with pincode) are required",
       });
     }
 
+    console.log("Searching for cart with userId:", userId);
     // Fetch user's cart
     const cart = await Cart.findOne({ user: userId });
+    console.log("Cart found:", !!cart);
+    console.log("Cart items count:", cart?.items?.length || 0);
+    
     if (!cart || cart.items.length === 0) {
+      console.log("Cart is empty or not found");
       return res.status(400).json({
         success: false,
         message: "Cart is empty or not found",
       });
     }
 
+    console.log("Creating order items...");
     // Create orderItems for the order
     const orderItems = cart.items.map((item) => ({
       product: item.product,
       quantity: item.quantity,
       price: item.price,
     }));
+    console.log("Order items created:", orderItems);
 
+    console.log("Creating new order...");
     // Create order based on your orderModel
     const newOrder = new orderModel({
       user: userId,
@@ -48,10 +61,14 @@ const placeOrder = async (req, res) => {
       isPaid: false,
     });
 
+    console.log("Saving order to database...");
     await newOrder.save();
+    console.log("Order saved successfully:", newOrder._id);
 
+    console.log("Updating product stock...");
     // Update stock and sold in product model
     for (const item of cart.items) {
+      console.log("Updating stock for product:", item.product);
       await Product.findByIdAndUpdate(item.product, {
         $inc: {
           stock: -item.quantity,
@@ -60,19 +77,23 @@ const placeOrder = async (req, res) => {
       });
     }
 
+    console.log("Clearing cart...");
     // Clear cart after order placed
     cart.items = [];
     cart.totalItems = 0;
     cart.totalPrice = 0;
     await cart.save();
 
+    console.log("Order placement successful, sending response...");
     res.status(201).json({
       success: true,
       message: "Order placed successfully",
       order: newOrder,
     });
   } catch (error) {
-    console.error("Error placing order:", error);
+    console.error("=== ERROR in placeOrder ===");
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
     res.status(500).json({
       success: false,
       message: "Failed to place order",
@@ -189,20 +210,47 @@ const verifyRazorpay = async (req, res) => {
 // user order data for frontend
 const getUserOrders = async (req, res) => {
   try {
-    const userId = req.body;
-    const orders = await orderModel.find({ user: userId });
-    console.log("User Orders:", orders);
+    console.log("getUserOrders called");
+    console.log("req.userId:", req.userId);
+    console.log("req.headers:", req.headers);
+
+    const userId = req.userId; // ✅ from authUser middleware
+
+    if (!userId) {
+      console.log("No userId found");
+      return res.status(400).json({
+        success: false,
+        message: "User ID not found in request",
+      });
+    }
+
+    console.log("Searching for orders with userId:", userId);
+
+    // First try without populate to see if basic query works
+    const orders = await orderModel.find({ user: userId })
+      .sort({ createdAt: -1 });
+
+    console.log("Found orders:", orders.length);
+    
+    if (orders.length > 0) {
+      console.log("Sample order:", orders[0]);
+    }
+
     res.json({
       success: true,
-      orders: orders,
+      orders,
     });
   } catch (error) {
-    res.json({
+    console.error("Error in getUserOrders:", error);
+    console.error("Error stack:", error.stack);
+    res.status(500).json({
       success: false,
+      message: "Failed to fetch orders",
       error: error.message,
     });
   }
 };
+
 
 // get single order admin only
 const getSingleOrder = async (req, res) => {};

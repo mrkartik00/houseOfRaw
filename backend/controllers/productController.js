@@ -1,5 +1,6 @@
 import productModel from "../models/productmodel.js";
 import { v2 as cloudinary } from "cloudinary";
+import mongoose from "mongoose";
 
 // add product
 const addProduct = async (req, res) => {
@@ -146,21 +147,37 @@ const singleProduct = async (req, res) => {
 
 // GET /api/products/related/:id
 // controller/productController.js
+// productController.js
+
 const getRelatedProducts = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ message: "Product not found" });
+    const productId = req.params.id;
 
-    const related = await Product.find({
-      _id: { $ne: product._id },
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return res.status(400).json({ success: false, message: "Invalid product ID" });
+    }
+
+    const product = await productModel.findById(productId);
+
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
+    const relatedProducts = await productModel.find({
+      _id: { $ne: productId },
       subcategory: product.subcategory,
     }).limit(10);
 
-    res.json(related);
+    res.status(200).json({ success: true, relatedProducts });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    console.error("Error in getRelatedProducts:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch related products", error: error.message });
   }
 };
+
+export default getRelatedProducts;
+
+
 
 const getAllProducts = async (req, res) => {
   const { sortBy } = req.query;

@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext';
 import { Link } from 'react-router-dom';
 import { FaTrash, FaMinus, FaPlus } from 'react-icons/fa';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 const Cart = () => {
   const { cart, loading, updateCart, removeItem, fetchCart, getCartTotal } = useCart();
@@ -12,6 +13,12 @@ const Cart = () => {
   useEffect(() => {
     fetchCart();
   }, []);
+
+  const navigate = useNavigate();
+  const handleCheckOut = () => {
+    navigate("/Checkout");
+  }
+
 
   const handleQuantityChange = async (item, newQuantity) => {
     if (newQuantity < 1) return;
@@ -198,7 +205,8 @@ const Cart = () => {
                 </div>
               </div>
 
-              <button className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-colors font-medium">
+              <button onClick ={handleCheckOut} 
+              className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-colors font-medium">
                 Proceed to Checkout
               </button>
 
