@@ -1,5 +1,4 @@
-import productModel from "../models/productModel.js";
-import Product from "../models/productModel.js";
+import productModel from "../models/productmodel.js";
 import { v2 as cloudinary } from "cloudinary";
 
 // add product
@@ -41,7 +40,7 @@ const addProduct = async (req, res) => {
     console.log(imageUrls);
 
     //save product to database
-    const product = new Product({
+    const product = new productModel({
       name,
       description,
       price: Number(price),
@@ -112,39 +111,23 @@ const listProducts = async (req, res) => {
 
 
 // Remove product by ID
+// productController.js
 const removeProduct = async (req, res) => {
   try {
-    const { id } = req.body;
-    console.log("Product ID to delete:", id);
-
+    const { id } = req.query;
     if (!id) {
-      return res.status(400).json({
-        success: false,
-        message: "Product ID is required",
-      });
+      return res.status(400).json({ success: false, message: "Product ID is required" });
     }
 
-    const deleted = await productModel.findByIdAndDelete(id);
+    await productModel.findByIdAndDelete(id);
 
-    if (!deleted) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found or already deleted",
-      });
-    }
-
-    res.json({
-      success: true,
-      message: "Product removed successfully",
-    });
+    return res.json({ success: true, message: "Product deleted successfully" });
   } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    console.error("Delete error:", error);
+    return res.status(500).json({ success: false, message: "Server error while deleting" });
   }
 };
+
 
 // Get single product by ID
 const singleProduct = async (req, res) => {
@@ -152,7 +135,7 @@ const singleProduct = async (req, res) => {
     const { id } = req.query; // ✅ not req.body
     if (!id) return res.status(400).json({ message: "Product ID is required" });
 
-    const product = await Product.findById(id);
+    const product = await productModel.findById(id);
     if (!product) return res.status(404).json({ message: "Product not found" });
 
     res.status(200).json({ product });
@@ -212,9 +195,86 @@ const getAllProducts = async (req, res) => {
   }
 };
 
+const updateProduct = async (req, res) => {
+  try {
+    const {
+      name,
+      description,
+      price,
+      category,
+      subcategory,
+      color,
+      stock,
+      sizes,
+    } = req.body;
+
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ success: false, message: "Product ID is required" });
+    }
+
+    // Handle image uploads
+    const image1 = req.files?.image1?.[0];
+    const image2 = req.files?.image2?.[0];
+    const image3 = req.files?.image3?.[0];
+    const image4 = req.files?.image4?.[0];
+    const image5 = req.files?.image5?.[0];
+
+    const images = [image1, image2, image3, image4, image5].filter(Boolean);
+
+    const imageUrls = await Promise.all(
+      images.map(async (file) => {
+        const result = await cloudinary.uploader.upload(file.path, {
+          resource_type: "image",
+        });
+        return result.secure_url;
+      })
+    );
+
+    // Prepare update payload
+    const updatedFields = {
+      name,
+      description,
+      price: Number(price),
+      category,
+      subcategory,
+      color,
+      stock: Number(stock),
+      sizes: JSON.parse(sizes),
+    };
+
+    // Only update image if new ones are uploaded
+    if (imageUrls.length > 0) {
+      updatedFields.image = imageUrls;
+    }
+
+    const updatedProduct = await productModel.findByIdAndUpdate(id, updatedFields, {
+      new: true,
+    });
+
+    if (!updatedProduct) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Product updated successfully",
+      product: updatedProduct,
+    });
+  } catch (error) {
+    console.error("❌ Error updating product:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
 
 
 
 
 
-export { addProduct, listProducts, removeProduct, singleProduct, getRelatedProducts, getAllProducts };
+
+
+
+export { addProduct, listProducts, removeProduct, singleProduct, getRelatedProducts, getAllProducts, updateProduct };

@@ -1,12 +1,13 @@
-import jwt from "jsonwebtoken"
+// middleware/adminAuth.js
+import jwt from "jsonwebtoken";
 
 const adminAuth = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.json({
+    return res.status(401).json({
       success: false,
-      message: "Token not found login again",
+      message: "Token not found, login again",
     });
   }
 
@@ -17,13 +18,11 @@ const adminAuth = (req, res, next) => {
     req.admin = decoded;
     next();
   } catch (error) {
-    return res.json({
+    return res.status(401).json({
       success: false,
       message: "Invalid token",
     });
   }
 };
 
-
-
-export default adminAuth
+export default adminAuth;

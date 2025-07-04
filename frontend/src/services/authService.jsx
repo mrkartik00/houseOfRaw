@@ -30,7 +30,7 @@ export const getUserDetails = async () => {
 };
 
 export const updateUserDetails = async (formData, token) => {
-  return axios.put('/api/user/update', formData, {
+  return axiosInstance.put('/api/user/update', formData, {
     headers: { token }
   });
 };
@@ -40,3 +40,10 @@ export const updateUserPassword = async (passwordData, token) => {
     headers: { token }
   });
 };
+
+
+export const loginAdmin = async (email, password) => {
+  const response = await axiosInstance.post('/api/user/admin/login', { email, password });
+  return response.data;
+};
+

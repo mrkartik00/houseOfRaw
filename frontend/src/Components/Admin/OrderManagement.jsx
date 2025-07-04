@@ -1,19 +1,40 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import {
+  fetchAllOrders,
+  updateOrderStatus,
+} from "../../services/orderServices";
+import { toast } from "sonner";
 
 const OrderManagement = () => {
-  const orders = [
-    {
-      _id: 123123,
-      user: {
-        name: "Karan",
-      },
-      totalPrice: 110,
-      status: "Processing",
-    },
-  ];
+  const [orders, setOrders] = useState([]);
 
-  const handleStatusChange = (orderId, status) => {
-    console.log({ id: orderId, status });
+  useEffect(() => {
+    const loadOrders = async () => {
+      try {
+        const data = await fetchAllOrders();
+        setOrders(data);
+      } catch (error) {
+        toast.error("Failed to fetch orders");
+      }
+    };
+
+    loadOrders();
+  }, []);
+
+  const handleStatusChange = async (orderId, newStatus) => {
+    try {
+      await updateOrderStatus(orderId, newStatus);
+      toast.success("Order status updated");
+
+      // Update local state
+      setOrders((prev) =>
+        prev.map((order) =>
+          order._id === orderId ? { ...order, orderStatus: newStatus } : order
+        )
+      );
+    } catch (error) {
+      toast.error("Failed to update status");
+    }
   };
 
   return (
@@ -25,7 +46,7 @@ const OrderManagement = () => {
             <tr>
               <th className="py-3 px-4">Order ID</th>
               <th className="py-3 px-4">Customer</th>
-              <th className="py-3 px-4">Total Price</th>
+              <th className="py-3 px-4">Total</th>
               <th className="py-3 px-4">Status</th>
               <th className="py-3 px-4">Actions</th>
             </tr>
@@ -33,32 +54,30 @@ const OrderManagement = () => {
           <tbody>
             {orders.length > 0 ? (
               orders.map((order) => (
-                <tr
-                  key={order._id}
-                  className="border-b hover:bg-gray-500 cursor-pointer"
-                >
+                <tr key={order._id} className="border-b hover:bg-gray-100">
                   <td className="py-4 px-4 font-medium text-gray-900 whitespace-nowrap">
                     #{order._id}
                   </td>
-                  <td className="p-4">{order.user.name}</td>
-                  <td className="p-4">{order.totalPrice}</td>
-
+                  <td className="p-4">{order.user?.name || "Unknown"}</td>
+                  <td className="p-4">₹{order.totalAmount}</td>
                   <td className="p-4">
                     <select
-                      value={order.status}
-                      onChange={(e) => handleStatusChange(order._id, e.target)}
+                      className="p-2 border rounded"
+                      value={order.orderStatus}
+                      onChange={(e) =>
+                        handleStatusChange(order._id, e.target.value)
+                      }
                     >
+                      <option value="Pending">Pending</option>
                       <option value="Processing">Processing</option>
                       <option value="Shipped">Shipped</option>
-
                       <option value="Delivered">Delivered</option>
-
                       <option value="Cancelled">Cancelled</option>
                     </select>
                   </td>
                   <td className="p-4">
                     <button
-                      onClick={handleStatusChange(order._id, "Delivered")}
+                      onClick={() => handleStatusChange(order._id, "Delivered")}
                       className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                     >
                       Mark as Delivered
@@ -69,7 +88,7 @@ const OrderManagement = () => {
             ) : (
               <tr>
                 <td colSpan={5} className="p-4 text-center text-gray-500">
-                  No Orders found.
+                  No orders found.
                 </td>
               </tr>
             )}

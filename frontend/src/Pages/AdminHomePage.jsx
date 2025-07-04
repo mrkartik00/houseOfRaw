@@ -1,17 +1,28 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { fetchAdminSummary } from "../services/orderServices";
+import { toast } from "sonner";
 
 const AdminHomePage = () => {
-  const orders = [
-    {
-      _id: 123123,
-      user: {
-        name: "Karan",
-      },
-      totalPrice: 110,
-      status: "Processing",
-    }
-  ];
+  const [summary, setSummary] = useState({
+    revenue: 0,
+    totalOrders: 0,
+    totalProducts: 0,
+    recentOrders: [],
+  });
+
+  useEffect(() => {
+    const getData = async () => {
+      try {
+        const data = await fetchAdminSummary();
+        setSummary(data);
+      } catch (error) {
+        toast.error("Failed to load admin summary");
+      }
+    };
+
+    getData();
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto p-6">
@@ -19,23 +30,24 @@ const AdminHomePage = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="p-4 shadow-md rounded-lg">
           <h2 className="text-xl font-semibold">Revenue</h2>
-          <p className="text-2xl">$10000</p>
+          <p className="text-2xl">₹{summary.revenue}</p>
         </div>
         <div className="p-4 shadow-md rounded-lg">
           <h2 className="text-xl font-semibold">Total Orders</h2>
-          <p className="text-2xl">200</p>
+          <p className="text-2xl">{summary.totalOrders}</p>
           <Link to="/admin/orders" className="text-blue-500 hover:underline">
             Manage Orders
           </Link>
         </div>
         <div className="p-4 shadow-md rounded-lg">
           <h2 className="text-xl font-semibold">Total Products</h2>
-          <p className="text-2xl">100</p>
+          <p className="text-2xl">{summary.totalProducts}</p>
           <Link to="/admin/products" className="text-blue-500 hover:underline">
-            Mabage Products
+            Manage Products
           </Link>
         </div>
       </div>
+
       <div className="mt-6">
         <h2 className="text-2xl font-bold mb-4">Recent Orders</h2>
         <div className="overflow-x-auto">
@@ -49,15 +61,16 @@ const AdminHomePage = () => {
               </tr>
             </thead>
             <tbody>
-              {orders.length > 0 ? (
-                orders.map((order) => (
-                  <tr key={order._id} className="border-b hover:bg-gray-50 cursor-pointer">
-                    <td className="p-4">{order._id}</td>
-                                        <td className="p-4">{order.user.name}</td>
-
-                                        <td className="p-4">{order.totalPrice}</td>
-
-                    <td className="p-4">{order.status}</td>
+              {summary.recentOrders.length > 0 ? (
+                summary.recentOrders.map((order) => (
+                  <tr
+                    key={order._id}
+                    className="border-b hover:bg-gray-50 cursor-pointer"
+                  >
+                    <td className="p-4">#{order._id}</td>
+                    <td className="p-4">{order.user?.name || "Unknown"}</td>
+                    <td className="p-4">₹{order.totalAmount}</td>
+                    <td className="p-4">{order.orderStatus}</td>
                   </tr>
                 ))
               ) : (

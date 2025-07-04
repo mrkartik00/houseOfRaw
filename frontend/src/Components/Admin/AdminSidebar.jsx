@@ -12,6 +12,7 @@ const AdminSidebar = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    localStorage.removeItem("adminToken"); // ✅ Remove admin token from localStorage
     navigate("/");
   };
 

@@ -31,6 +31,7 @@ import EditProductPage from "./Components/Admin/EditProductPage.jsx";
 import OrderManagement from "./Components/Admin/OrderManagement.jsx";
 import AddProduct from "./Components/Admin/AddProductPage.jsx";
 import AddProductPage from "./Components/Admin/AddProductPage.jsx";
+import AdminLogin from "./Pages/AdminLogin.jsx";
 
 const App = () => {
   return (
@@ -62,6 +63,7 @@ const App = () => {
             <Route path="/favorites" element={<FavoritesPage />} />
             <Route path="/cart" element={<Cart />} />
           </Route>
+          <Route path="/admin/532" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminLayout />} > 
           <Route index element={<AdminHomePage />} />
           <Route path="products" element={<ProductManagement />} />

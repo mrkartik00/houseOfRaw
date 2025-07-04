@@ -2,6 +2,8 @@ import express from 'express';
 import { addProduct,removeProduct,listProducts,singleProduct, getRelatedProducts, getAllProducts } from '../controllers/productController.js';
 import upload from '../middlewares/multer.js';
 import adminAuth from '../middlewares/adminAuth.js';
+import { updateProduct } from '../controllers/productController.js'; // ⬅️ Make sure this is imported
+
 
 const productController = express.Router();
 
@@ -17,6 +19,19 @@ productController.get('/single', singleProduct);
 productController.get('/related/:id', getRelatedProducts);
 
 productController.get('/',getAllProducts);
+
+productController.put(
+  '/update/:id',
+  adminAuth,
+  upload.fields([
+    { name: 'image1', maxCount: 1 },
+    { name: 'image2', maxCount: 1 },
+    { name: 'image3', maxCount: 1 },
+    { name: 'image4', maxCount: 1 },
+    { name: 'image5', maxCount: 1 },
+  ]),
+  updateProduct
+);
 
 
 export default productController;

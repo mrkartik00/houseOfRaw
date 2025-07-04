@@ -153,16 +153,34 @@ const updateOrderStatus = async (req, res) => {
   
 };
 
-// example
-{/*
 
-  http://localhost:3000/api/order/status
-  {
-    "orderId":  "6865080f6c3b10bd2583f9b7",
-    "status": "Shipped"
-}
-}
-  */}
+const getAdminSummary = async (req, res) => {
+  try {
+    const orders = await orderModel.find({}).populate("user", "name");
+    const products = await Product.find({});
+
+    const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+
+    const recentOrders = orders
+      .slice(-5) // last 5 orders
+      .reverse(); // most recent first
+
+    res.json({
+      success: true,
+      revenue: totalRevenue,
+      totalOrders: orders.length,
+      totalProducts: products.length,
+      recentOrders,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch summary",
+      error: error.message,
+    });
+  }
+};
+
 
 
 
@@ -173,4 +191,5 @@ export {
   getSingleOrder,
   getAllOrders,
   updateOrderStatus,
+  getAdminSummary,
 };

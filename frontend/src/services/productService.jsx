@@ -37,9 +37,26 @@ export const addProduct = async (formData, token) => {
 };
 
 export const removeProduct = async (id, token) => {
-  const res = await axios.get(`${BASE_URL}/remove`, {
-    headers: { Authorization: `Bearer ${token}` },
-    data: { id }, // not recommended with GET, but matches your backend for now
+  const response = await axios.get(`/api/products/remove`, {
+    params: { id },
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
-  return res.data;
+  return response.data;
 };
+
+export const updateProduct = async (formData, token, id) => {
+  const response = await axios.put(
+    `http://localhost:3000/api/products/update/${id}`,
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return response.data;
+};
+
+

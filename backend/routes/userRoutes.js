@@ -6,7 +6,7 @@ import { registerUser,
     updateUserDetails,
     updateUserPassword,
     deleteUserAccount,
-    adminLogin
+    adminLogin,
 } from '../controllers/userController.js';
 import  authUser  from '../middlewares/authUser.js';
 
@@ -19,6 +19,6 @@ userRouter.get('/details', authUser, getUserDetails); // Protected
 userRouter.put('/update', authUser, updateUserDetails);
 userRouter.put('/update-password', authUser, updateUserPassword);
 userRouter.delete('/delete', authUser, deleteUserAccount);
-userRouter.post('/admin',adminLogin);
+userRouter.post('/admin/login',adminLogin);
 
 export default userRouter;
