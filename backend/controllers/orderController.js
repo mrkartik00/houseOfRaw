@@ -1,6 +1,6 @@
 import Cart from "../models/cartModel.js";
 import orderModel from "../models/orderModel.js";
-import Product from "../models/productModel.js";
+import Product from "../models/productmodel.js";
 import Razorpay from "razorpay";
 
 const razorpayInstance = new Razorpay({

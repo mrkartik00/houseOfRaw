@@ -1,4 +1,4 @@
-import Product from "../models/productModel.js";
+import Product from "../models/productmodel.js";
 import mongoose from "mongoose";
 import Order from "../models/orderModel.js";
 
