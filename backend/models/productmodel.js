@@ -62,6 +62,11 @@ const productSchema = new mongoose.Schema({
         ref: "User",
         required: true,
       },
+      order: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Order",
+        required: true,
+      },
       comment: {
         type: String,
         required: true,
@@ -74,6 +79,9 @@ const productSchema = new mongoose.Schema({
         min: 0,
         max: 5,
       },
+      images: [{
+        type: String, // Store cloudinary URLs
+      }],
       createdAt: {
         type: Date,
         default: Date.now,

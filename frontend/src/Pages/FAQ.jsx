@@ -154,7 +154,7 @@ export default function FAQpage() {
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <Link to="/contact" className="bg-white text-black px-8 py-4 rounded-full font-bold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                                📧 Contact Us
+                                📞 Contact Us
                             </Link>
                         </div>
                     </div>

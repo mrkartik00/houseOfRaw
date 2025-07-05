@@ -106,6 +106,9 @@ const OrderConfirmationPage = () => {
 
         {/* Call-to-action */}
         <div className="mt-12 text-center">
+          <p className='texxt-gray-600 text-lg mb-5'>
+            Please Rate us Once order is delivered.
+          </p>
           <p className="text-gray-600 text-sm mb-4">
             You'll receive a confirmation email with your order details shortly.
           </p>

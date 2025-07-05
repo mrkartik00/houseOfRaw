@@ -266,13 +266,39 @@ const getUserOrders = async (req, res) => {
 
     console.log("Found orders:", orders.length);
     
-    if (orders.length > 0) {
-      console.log("Sample order:", orders[0]);
-    }
+    // Check which products have been reviewed by this user
+    const ordersWithReviewStatus = await Promise.all(
+      orders.map(async (order) => {
+        const orderItems = await Promise.all(
+          order.orderItems.map(async (item) => {
+            // Check if this user has reviewed this product from this specific order
+            const product = await Product.findById(item.product._id);
+            const userReview = product?.reviews?.find(
+              review => review.user.toString() === userId && 
+                       review.order && 
+                       review.order.toString() === order._id.toString()
+            );
+            
+            return {
+              ...item.toObject(),
+              hasReviewed: !!userReview,
+              userReview: userReview || null
+            };
+          })
+        );
+        
+        return {
+          ...order.toObject(),
+          orderItems,
+          // Check if all products in this order have been reviewed
+          allItemsReviewed: orderItems.every(item => item.hasReviewed)
+        };
+      })
+    );
 
     res.json({
       success: true,
-      orders,
+      orders: ordersWithReviewStatus,
     });
   } catch (error) {
     console.error("Error in getUserOrders:", error);
@@ -292,7 +318,10 @@ const getSingleOrder = async (req, res) => {};
 // get all orders admin only
 const getAllOrders = async (req, res) => {
   try {
-    const orders = await orderModel.find({});
+    const orders = await orderModel.find({})
+      .populate('user', 'name email')
+      .populate('orderItems.product')
+      .sort({ createdAt: -1 });
     res.json({
       success: true,
       orders: orders,
@@ -324,7 +353,9 @@ const updateOrderStatus = async (req, res) => {
 
 const getAdminSummary = async (req, res) => {
   try {
-    const orders = await orderModel.find({}).populate("user", "name");
+    const orders = await orderModel.find({})
+      .populate("user", "name")
+      .populate("orderItems.product", "name image");
     const products = await Product.find({});
 
     const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);

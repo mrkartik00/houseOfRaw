@@ -95,7 +95,7 @@ const listProducts = async (req, res) => {
       };
     }
 
-    let productQuery = productModel.find(query);
+    let productQuery = productModel.find(query).populate('reviews.user', 'name email');
 
     if (sortBy === 'priceAsc') productQuery = productQuery.sort({ price: 1 });
     else if (sortBy === 'priceDesc') productQuery = productQuery.sort({ price: -1 });
@@ -136,7 +136,7 @@ const singleProduct = async (req, res) => {
     const { id } = req.query; // ✅ not req.body
     if (!id) return res.status(400).json({ message: "Product ID is required" });
 
-    const product = await productModel.findById(id);
+    const product = await productModel.findById(id).populate('reviews.user', 'name email');
     if (!product) return res.status(404).json({ message: "Product not found" });
 
     res.status(200).json({ product });
@@ -166,7 +166,7 @@ const getRelatedProducts = async (req, res) => {
     const relatedProducts = await productModel.find({
       _id: { $ne: productId },
       subcategory: product.subcategory,
-    }).limit(10);
+    }).limit(10).populate('reviews.user', 'name email');
 
     res.status(200).json({ success: true, relatedProducts });
   } catch (error) {
@@ -238,7 +238,7 @@ const getAllProducts = async (req, res) => {
   }
 
   try {
-    const products = await productModel.find(filter).sort(sort);
+    const products = await productModel.find(filter).sort(sort).populate('reviews.user', 'name email');
     res.status(200).json(products);
   } catch (err) {
     console.error('Error fetching products:', err);

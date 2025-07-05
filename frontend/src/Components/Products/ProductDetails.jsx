@@ -18,6 +18,7 @@ const ProductDetails = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState([]);
+  const [showAllReviews, setShowAllReviews] = useState(false);
 
   const { addToCart, loading: cartLoading } = useCart();
   const { isInWishlist, toggleWishlistItem } = useWishlist();
@@ -283,6 +284,144 @@ const ProductDetails = () => {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Reviews Section */}
+      <div className='mt-6 sm:mt-12 max-w-6xl mx-auto bg-white p-3 sm:p-6 lg:p-8 rounded-lg shadow-md'>
+        <h2 className='text-xl sm:text-2xl font-bold mb-3 sm:mb-4 px-1' id="reviews">Customer Reviews</h2>
+        
+        {/* Review Summary */}
+        <div className='flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6 p-3 sm:p-4 bg-gray-50 rounded-lg'>
+          <div className='text-center sm:text-left'>
+            <div className='text-2xl sm:text-3xl font-bold text-gray-900 mb-1'>
+              {product?.ratings?.toFixed(1) || '0.0'}
+            </div>
+            <div className='flex items-center justify-center sm:justify-start gap-1 mb-1'>
+              {[...Array(5)].map((_, i) => (
+                <FaStar 
+                  key={i} 
+                  className={`w-3 h-3 sm:w-4 sm:h-4 ${i < Math.floor(product?.ratings || 0) ? 'text-yellow-400' : 'text-gray-300'}`}
+                />
+              ))}
+            </div>
+            <p className='text-xs sm:text-sm text-gray-600'>
+              Based on {(product?.reviews || []).length} reviews
+            </p>
+          </div>
+          
+          <div className='flex-1'>
+            <h3 className='font-semibold text-gray-800 mb-2 sm:mb-3 text-center sm:text-left'>Rating Distribution</h3>
+            {[5, 4, 3, 2, 1].map(rating => {
+              const count = (product?.reviews || []).filter(r => r.rating === rating).length;
+              const percentage = (product?.reviews || []).length > 0 ? (count / (product?.reviews || []).length) * 100 : 0;
+              return (
+                <div key={rating} className='flex items-center gap-2 sm:gap-3 mb-1'>
+                  <span className='text-xs sm:text-sm font-medium w-6 sm:w-8'>{rating}★</span>
+                  <div className='flex-1 bg-gray-200 rounded-full h-2'>
+                    <div 
+                      className='bg-yellow-400 h-2 rounded-full transition-all duration-300'
+                      style={{ width: `${percentage}%` }}
+                    ></div>
+                  </div>
+                  <span className='text-xs sm:text-sm text-gray-600 w-6 sm:w-8'>{count}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Individual Reviews */}
+        <div className='space-y-3 sm:space-y-4'>
+          {(product?.reviews || []).length > 0 ? (
+            <>
+              {(showAllReviews ? (product?.reviews || []) : (product?.reviews || []).slice(0, 2)).map((review, index) => (
+                <div key={index} className='border-b pb-3 sm:pb-4 last:border-b-0'>
+                  <div className='flex items-start gap-3'>
+                    {/* User Avatar */}
+                    <div className='w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0'>
+                      <span className='text-xs sm:text-sm font-medium text-white'>
+                        {review.user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                      </span>
+                    </div>
+                    
+                    <div className='flex-1 min-w-0'>
+                      {/* Review Header */}
+                      <div className='flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-2'>
+                        <h4 className='font-semibold text-sm sm:text-base text-gray-900 truncate'>
+                          {review.user?.name || 'Anonymous User'}
+                        </h4>
+                        <div className='flex items-center gap-2'>
+                          <div className='flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-full'>
+                            {[...Array(5)].map((_, i) => (
+                              <FaStar 
+                                key={i} 
+                                size={10}
+                                className={`${i < review.rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                              />
+                            ))}
+                          </div>
+                          <span className='text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full whitespace-nowrap'>
+                            {new Date(review.createdAt).toLocaleDateString('en-IN', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* Review Content */}
+                      <p className='text-gray-700 text-sm sm:text-base mb-2 leading-relaxed'>
+                        {review.comment}
+                      </p>
+                      
+                      {/* Review Images */}
+                      {review.images && review.images.length > 0 && (
+                        <div className='flex gap-2 mt-2 overflow-x-auto pb-1 scrollbar-hide'>
+                          {review.images.map((image, imgIndex) => (
+                            <img
+                              key={imgIndex}
+                              src={image}
+                              alt={`Review image ${imgIndex + 1}`}
+                              className='w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-lg border border-gray-200 cursor-pointer hover:shadow-md transition-shadow flex-shrink-0'
+                              onClick={() => {
+                                window.open(image, '_blank');
+                              }}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              
+              {/* See More/See Less Text */}
+              {(product?.reviews || []).length > 2 && (
+                <div className='text-center pt-2 sm:pt-3'>
+                  <span
+                    onClick={() => setShowAllReviews(!showAllReviews)}
+                    className='text-blue-600 hover:text-blue-800 cursor-pointer text-sm font-medium underline hover:no-underline transition-colors duration-200'
+                  >
+                    {showAllReviews ? (
+                      'Show Less Reviews ↑'
+                    ) : (
+                      `See More Reviews (${(product?.reviews || []).length - 2} more) ↓`
+                    )}
+                  </span>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className='text-center py-6 sm:py-8'>
+              <div className='w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3'>
+                <FaStar className='text-gray-300 text-lg sm:text-xl' />
+              </div>
+              <h3 className='text-base sm:text-lg font-medium text-gray-600 mb-1'>No reviews yet</h3>
+              <p className='text-sm text-gray-500'>Be the first to review this product!</p>
+            </div>
+          )}
         </div>
       </div>
 
