@@ -17,6 +17,7 @@ import Settings from "./profile/Settings.jsx";
 import ProductDetails from "./Components/Products/ProductDetails.jsx";
 import FavoritesPage from "./Pages/Fovourite.jsx";
 import { CartProvider } from "./context/CartContext.jsx";
+import { WishlistProvider } from "./context/WishlistContext.jsx";
 import Contact from "./Pages/Contact.jsx";
 import About from "./Pages/About.jsx";
 import { Feather } from "lucide-react";
@@ -35,14 +36,17 @@ import AdminLogin from "./Pages/AdminLogin.jsx";
 import CheckOut from "./Components/Cart/CheckOut.jsx";
 import PaymentsPage from "./Components/Cart/PaymentsPage.jsx";
 import OrderConfirmationPage from "./Components/Cart/OrderConfirmationPage.jsx";
+import WishList from "./Pages/WishList.jsx";
+import Customize from "./Pages/Customize.jsx";
 
 const App = () => {
   return (
     <BrowserRouter>
       <CartProvider>
-        <ScrollToTop />
+        <WishlistProvider>
+          <ScrollToTop />
 
-        <Routes>
+          <Routes>
           <Route path="/" element={<UserLayout />}>
             <Route index element={<Home />} />
             <Route path="login" element={<Login />} />
@@ -57,6 +61,8 @@ const App = () => {
             <Route path="/checkout" element={<CheckOut />} />
             <Route path="/payments" element={<PaymentsPage />} />
             <Route path="order-confirmation" element={<OrderConfirmationPage />} />
+            <Route path="/wishlist" element={<WishList />} />
+            <Route path="/customize" element={<Customize />} />
 
             <Route path="profile" element={<Profile />}>
               <Route path="orders" element={<MyOrders />} />
@@ -77,8 +83,9 @@ const App = () => {
           <Route path="orders" element={<OrderManagement />} />
           <Route path="products/add" element={<AddProductPage />} />
           </Route>
-        </Routes>
-        <Toaster position="top-right" richColors closeButton duration={3000} />
+          </Routes>
+          <Toaster position="top-right" richColors closeButton duration={3000} />
+        </WishlistProvider>
       </CartProvider>
     </BrowserRouter>
   );

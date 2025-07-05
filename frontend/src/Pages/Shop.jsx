@@ -18,7 +18,7 @@ const Shop = () => {
     size: [],
     material: [],
     minPrice: 0,
-    maxPrice: 100,
+    maxPrice: 5000,
   });
 
   useEffect(() => {
@@ -29,7 +29,7 @@ const Shop = () => {
       size: params.size ? params.size.split(',') : [],
       material: params.material ? params.material.split(',') : [],
       minPrice: parseInt(params.minPrice) || 0,
-      maxPrice: parseInt(params.maxPrice) || 100,
+      maxPrice: parseInt(params.maxPrice) || 5000,
     });
   }, [searchParams]);
 
@@ -55,7 +55,7 @@ const Shop = () => {
     if (filters.size.length > 0) params.size = filters.size.join(',');
     if (filters.material.length > 0) params.material = filters.material.join(',');
     if (filters.minPrice > 0) params.minPrice = filters.minPrice;
-    if (filters.maxPrice < 100) params.maxPrice = filters.maxPrice;
+    if (filters.maxPrice < 5000) params.maxPrice = filters.maxPrice;
 
     setSearchParams(params);
   };
@@ -68,7 +68,7 @@ const Shop = () => {
     currentFilters.size.length > 0 ||
     currentFilters.material.length > 0 ||
     currentFilters.minPrice > 0 ||
-    currentFilters.maxPrice < 100;
+    currentFilters.maxPrice < 5000;
 
   const getActiveFilterCount = () => {
     let count = 0;
@@ -76,7 +76,7 @@ const Shop = () => {
     if (currentFilters.color) count++;
     count += currentFilters.size.length;
     count += currentFilters.material.length;
-    if (currentFilters.minPrice > 0 || currentFilters.maxPrice < 100) count++;
+    if (currentFilters.minPrice > 0 || currentFilters.maxPrice < 5000) count++;
     return count;
   };
 
@@ -193,7 +193,7 @@ const Shop = () => {
                   <span className="font-medium">Material:</span> {material}
                 </span>
               ))}
-              {(currentFilters.minPrice > 0 || currentFilters.maxPrice < 100) && (
+              {(currentFilters.minPrice > 0 || currentFilters.maxPrice < 5000) && (
                 <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm">
                   <span className="font-medium">Price:</span> ₹{currentFilters.minPrice} - ₹{currentFilters.maxPrice}
                 </span>

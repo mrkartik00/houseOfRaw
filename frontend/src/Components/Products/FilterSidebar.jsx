@@ -8,10 +8,10 @@ const FilterPopup = ({ isOpen, onClose, onApply, currentFilters }) => {
     size: [],
     material: [],
     minPrice: 0,
-    maxPrice: 100,
+    maxPrice: 5000,
   });
 
-  const [priceRange, setPriceRange] = useState([0, 100]);
+  const [priceRange, setPriceRange] = useState([0, 5000]);
 
   const categories = ['T-shirts', 'Shirts', 'Jeans', 'Shorts', 'Jumpsuits', 'Dresses'];
   const colors = ['Red', 'Blue', 'Green', 'Black', 'Yellow', 'Gray', 'White', 'Pink', 'Beige', 'Navy'];
@@ -27,9 +27,9 @@ const FilterPopup = ({ isOpen, onClose, onApply, currentFilters }) => {
         size: currentFilters.size || [],
         material: currentFilters.material || [],
         minPrice: currentFilters.minPrice || 0,
-        maxPrice: currentFilters.maxPrice || 100,
+        maxPrice: currentFilters.maxPrice || 5000,
       });
-      setPriceRange([currentFilters.minPrice || 0, currentFilters.maxPrice || 100]);
+      setPriceRange([currentFilters.minPrice || 0, currentFilters.maxPrice || 5000]);
     }
   }, [isOpen, currentFilters]);
 
@@ -64,9 +64,9 @@ const FilterPopup = ({ isOpen, onClose, onApply, currentFilters }) => {
       size: [],
       material: [],
       minPrice: 0,
-      maxPrice: 100,
+      maxPrice: 5000,
     });
-    setPriceRange([0, 100]);
+    setPriceRange([0, 5000]);
   };
 
   // Apply filters
@@ -205,17 +205,17 @@ const FilterPopup = ({ isOpen, onClose, onApply, currentFilters }) => {
               <input
                 type="range"
                 min={0}
-                max={100}
+                max={5000}
                 value={priceRange[1]}
                 onChange={handlePriceChange}
                 className="w-full h-2 bg-gradient-to-r from-blue-200 to-blue-500 rounded-lg appearance-none cursor-pointer slider"
                 style={{
-                  background: `linear-gradient(to right, #dbeafe 0%, #3b82f6 ${priceRange[1]}%, #e5e7eb ${priceRange[1]}%, #e5e7eb 100%)`
+                  background: `linear-gradient(to right, #dbeafe 0%, #3b82f6 ${(priceRange[1]/5000)*100}%, #e5e7eb ${(priceRange[1]/5000)*100}%, #e5e7eb 100%)`
                 }}
               />
               <div className="flex justify-between text-sm font-medium text-gray-600 mt-3">
-                <span className="bg-gray-100 px-2 py-1 rounded">$0</span>
-                <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">${priceRange[1]}</span>
+                <span className="bg-gray-100 px-2 py-1 rounded">₹0</span>
+                <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">₹{priceRange[1]}</span>
               </div>
             </div>
           </div>

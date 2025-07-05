@@ -180,9 +180,42 @@ export default getRelatedProducts;
 
 
 const getAllProducts = async (req, res) => {
-  const { sortBy } = req.query;
-  let sort = {};
+  const { sortBy, category, color, size, material, minPrice, maxPrice } = req.query;
+  
+  // Build filter object
+  let filter = {};
+  
+  // Category filter
+  if (category) {
+    filter.category = { $regex: category, $options: 'i' };
+  }
+  
+  // Color filter
+  if (color) {
+    filter.color = { $regex: color, $options: 'i' };
+  }
+  
+  // Size filter
+  if (size) {
+    const sizeArray = size.split(',');
+    filter.sizes = { $in: sizeArray };
+  }
+  
+  // Material filter
+  if (material) {
+    const materialArray = material.split(',');
+    filter.material = { $in: materialArray };
+  }
+  
+  // Price range filter
+  if (minPrice || maxPrice) {
+    filter.price = {};
+    if (minPrice) filter.price.$gte = parseInt(minPrice);
+    if (maxPrice) filter.price.$lte = parseInt(maxPrice);
+  }
 
+  // Build sort object
+  let sort = {};
   switch (sortBy) {
     case 'priceAsc':
       sort.price = 1;
@@ -205,9 +238,10 @@ const getAllProducts = async (req, res) => {
   }
 
   try {
-    const products = await productModel.find().sort(sort);
+    const products = await productModel.find(filter).sort(sort);
     res.status(200).json(products);
   } catch (err) {
+    console.error('Error fetching products:', err);
     res.status(500).json({ error: "Failed to fetch products" });
   }
 };

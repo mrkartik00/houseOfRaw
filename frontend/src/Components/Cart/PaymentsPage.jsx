@@ -12,6 +12,7 @@ const PaymentsPage = () => {
   const [loading, setLoading] = useState(true);
   const [placingOrder, setPlacingOrder] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [shippingAddress, setShippingAddress] = useState(null);
 
   const getUserIdFromToken = () => {
     const token = localStorage.getItem("token");
@@ -33,19 +34,26 @@ const PaymentsPage = () => {
         const res = await getUserCart(userId);
         setCart(res?.cart || res?.data?.cart || null);
       } catch (error) {
+        console.error("Failed to load cart:", error);
         toast.error("Failed to load cart.");
       } finally {
         setLoading(false);
       }
     };
 
+    // Load shipping address from checkout info
+    const checkoutInfo = JSON.parse(localStorage.getItem("checkoutInfo") || "{}");
+    if (checkoutInfo.selectedAddress) {
+      setShippingAddress(checkoutInfo.selectedAddress);
+    }
+
     if (userId) fetchCart();
   }, [userId]);
 
   const handlePlaceOrder = async () => {
     const checkoutInfo = JSON.parse(localStorage.getItem("checkoutInfo"));
-    if (!userId || !checkoutInfo?.shippingAddress) {
-      toast.error("Missing user or shipping details");
+    if (!checkoutInfo?.selectedAddress) {
+      toast.error("Missing shipping details");
       return;
     }
 
@@ -53,8 +61,7 @@ const PaymentsPage = () => {
 
     try {
       const response = await placeOrder({
-        userId,
-        shippingAddress: checkoutInfo.shippingAddress,
+        shippingAddress: checkoutInfo.selectedAddress,
         paymentMethod,
       });
 
@@ -120,6 +127,20 @@ const PaymentsPage = () => {
         >
           {placingOrder ? "Placing Order..." : "Place Order"}
         </button>
+
+        {/* Shipping Address Display */}
+        {shippingAddress && (
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+            <h4 className="font-semibold text-gray-800 mb-2">Shipping Address:</h4>
+            <div className="text-sm text-gray-600">
+              <p className="font-medium">{shippingAddress.fullName}</p>
+              <p>{shippingAddress.street}</p>
+              <p>{shippingAddress.city}, {shippingAddress.state} - {shippingAddress.pincode}</p>
+              <p>{shippingAddress.country}</p>
+              <p>Phone: {shippingAddress.mobile}</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Order Summary */}

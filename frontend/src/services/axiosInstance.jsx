@@ -5,4 +5,18 @@ const axiosInstance = axios.create({
   withCredentials: true, // only if using cookies
 });
 
+// Add a request interceptor to automatically include the token
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token && !config.headers.token) {
+      config.headers.token = token;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 export default axiosInstance;

@@ -14,20 +14,40 @@ const placeOrder = async (req, res) => {
     console.log("Request body:", req.body);
     console.log("User ID from auth middleware:", req.userId);
     
-    const { userId, shippingAddress } = req.body;
+    const { shippingAddress, paymentMethod } = req.body;
+    const userId = req.userId; // Get userId from auth middleware instead of request body
 
     // Validate input
-    if (!userId || !shippingAddress || !shippingAddress.pincode) {
+    if (!userId || !shippingAddress) {
       console.log("Validation failed - missing required fields");
       return res.status(400).json({
         success: false,
-        message: "userId and full shippingAddress (with pincode) are required",
+        message: "User authentication and shippingAddress are required",
+      });
+    }
+
+    // Map the address fields correctly for the order model
+    const orderShippingAddress = {
+      street: shippingAddress.street || shippingAddress.addressLine || shippingAddress.address,
+      city: shippingAddress.city,
+      state: shippingAddress.state,
+      pincode: shippingAddress.pincode,
+      country: shippingAddress.country || "India"
+    };
+
+    // Validate required address fields
+    if (!orderShippingAddress.street || !orderShippingAddress.city || 
+        !orderShippingAddress.state || !orderShippingAddress.pincode) {
+      console.log("Address validation failed - missing required address fields");
+      return res.status(400).json({
+        success: false,
+        message: "Complete shipping address is required (street, city, state, pincode)",
       });
     }
 
     console.log("Searching for cart with userId:", userId);
-    // Fetch user's cart
-    const cart = await Cart.findOne({ user: userId });
+    // Fetch user's cart and populate product details
+    const cart = await Cart.findOne({ user: userId }).populate('items.product');
     console.log("Cart found:", !!cart);
     console.log("Cart items count:", cart?.items?.length || 0);
     
@@ -40,22 +60,32 @@ const placeOrder = async (req, res) => {
     }
 
     console.log("Creating order items...");
-    // Create orderItems for the order
+    // Create orderItems for the order with complete product and variant information
     const orderItems = cart.items.map((item) => ({
       product: item.product,
+      variant: {
+        size: item.variant.size,
+        color: item.variant.color
+      },
       quantity: item.quantity,
       price: item.price,
     }));
     console.log("Order items created:", orderItems);
 
     console.log("Creating new order...");
+    
+    // Map payment method from frontend to backend enum values
+    const mappedPaymentMethod = paymentMethod === "COD" ? "Cash on Delivery" : 
+                               paymentMethod === "RAZORPAY" ? "Online Payment" : 
+                               "Cash on Delivery"; // default
+                               
     // Create order based on your orderModel
     const newOrder = new orderModel({
       user: userId,
       orderItems,
       totalAmount: cart.totalPrice,
-      shippingAddress,
-      paymentMethod: "Cash on Delivery",
+      shippingAddress: orderShippingAddress,
+      paymentMethod: mappedPaymentMethod,
       paymentStatus: "Pending",
       orderStatus: "Pending",
       isPaid: false,
@@ -64,6 +94,9 @@ const placeOrder = async (req, res) => {
     console.log("Saving order to database...");
     await newOrder.save();
     console.log("Order saved successfully:", newOrder._id);
+
+    // Populate the product details for the response
+    await newOrder.populate('orderItems.product');
 
     console.log("Updating product stock...");
     // Update stock and sold in product model
@@ -226,8 +259,9 @@ const getUserOrders = async (req, res) => {
 
     console.log("Searching for orders with userId:", userId);
 
-    // First try without populate to see if basic query works
+    // Find orders and populate product details
     const orders = await orderModel.find({ user: userId })
+      .populate('orderItems.product')
       .sort({ createdAt: -1 });
 
     console.log("Found orders:", orders.length);

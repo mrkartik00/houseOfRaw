@@ -1,12 +1,18 @@
 // Updated ProductGrid.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { Heart, ShoppingCart, Eye, Star, ArrowRight } from 'lucide-react';
+import { useWishlist } from '../../context/WishlistContext';
 
 const ProductGrid = ({ products, viewMode = 'grid' }) => {
-  const [favorites, setFavorites] = useState(new Set());
   const [visibleItems, setVisibleItems] = useState(new Set());
   const [hoveredProduct, setHoveredProduct] = useState(null);
   const observerRef = useRef(null);
+  const { isInWishlist, toggleWishlistItem } = useWishlist();
+
+  // Fetch user's wishlist on component mount
+  useEffect(() => {
+    // No need to fetch wishlist here as it's handled by WishlistContext
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -33,14 +39,11 @@ const ProductGrid = ({ products, viewMode = 'grid' }) => {
     return () => observer.disconnect();
   }, [products]);
 
-  const toggleFavorite = (e, productId) => {
+  const toggleFavorite = async (e, productId) => {
     e.preventDefault();
     e.stopPropagation();
-    setFavorites(prev => {
-      const newSet = new Set(prev);
-      newSet.has(productId) ? newSet.delete(productId) : newSet.add(productId);
-      return newSet;
-    });
+    
+    await toggleWishlistItem(productId);
   };
 
   const formatPrice = price => new Intl.NumberFormat('en-IN', {
@@ -106,7 +109,7 @@ const renderStars = rating => (
                 >
                   <Heart 
                     size={16} 
-                    className={favorites.has(product._id) ? 'text-red-500 fill-red-500' : 'text-gray-600'} 
+                    className={isInWishlist(product._id) ? 'text-red-500 fill-red-500' : 'text-white stroke-gray-400'} 
                   />
                 </button>
               </div>
@@ -184,7 +187,7 @@ const renderStars = rating => (
               >
                 <Heart 
                   size={16} 
-                  className={favorites.has(product._id) ? 'text-red-500 fill-red-500' : 'text-gray-600'} 
+                  className={isInWishlist(product._id) ? 'text-red-500 fill-red-500' : 'text-white stroke-gray-400'} 
                 />
               </button>
 

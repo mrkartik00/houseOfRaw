@@ -4,9 +4,9 @@ import { HiOutlineUser, HiOutlineShoppingBag, HiOutlineHeart, HiBars3BottomRight
 import SearchBar from './SearchBar';
 import { useState, useEffect } from 'react';
 import { IoMdClose } from 'react-icons/io';
-import { useCart } from '../../context/CartContext';
 import React from 'react';
 import { useLocation } from "react-router-dom";
+import { useCart } from '../../context/CartContext';
 
 
 const Navbar = () => {
@@ -18,14 +18,14 @@ const Navbar = () => {
         setNavDrawerOpen(!navDrawerOpen);
     };
 
-    const cartItemCount = getCartItemCount();
-
     const location = useLocation();
 
     useEffect(() => {
         const token = localStorage.getItem("token");
         setIsLoggedIn(!!token);
     }, [location]);
+
+    const cartItemCount = getCartItemCount();
 
     return (
         <>
@@ -52,20 +52,20 @@ const Navbar = () => {
                     </div>
                     <div className='flex items-center space-x-4'>
                         {/* Favorites icon */}
-                        <Link to="/favorites" className="hover:text-black">
-                            <HiOutlineHeart className='h-6 w-6 text-gray-700' />
+                        <Link to="/wishlist" className="hover:text-black">
+                            <HiOutlineHeart className={`h-6 w-6 ${location.pathname === '/wishlist' ? 'text-red-500 fill-red-500' : 'text-gray-700'}`} />
                         </Link>
 
                         {/* Profile icon */}
                         <Link to={isLoggedIn ? "/profile" : "/login"} className="hover:text-black">
-                            <HiOutlineUser className='h-6 w-6 text-gray-700' />
+                            <HiOutlineUser className={`h-6 w-6 ${location.pathname.startsWith('/profile') || location.pathname === '/login' ? 'text-black fill-black' : 'text-gray-700'}`} />
                         </Link>
 
                         {/* Cart icon */}
-                        <Link to="/cart" className="relative hover:text-black">
-                            <HiOutlineShoppingBag className='h-6 w-6 text-gray-700' />
+                        <Link to="/cart" className="hover:text-black relative">
+                            <HiOutlineShoppingBag className={`h-6 w-6 ${location.pathname === '/cart' ? 'text-red-500 fill-red-500' : 'text-gray-700'}`} />
                             {cartItemCount > 0 && (
-                                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+                                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
                                     {cartItemCount > 99 ? '99+' : cartItemCount}
                                 </span>
                             )}
@@ -107,13 +107,13 @@ const Navbar = () => {
                             Bottom Wear
                         </Link>
                         <hr className="my-4" />
-                        <Link to="/cart" onClick={toggleNavDrawer} className='block text-gray-700 hover:text-black flex items-center'>
-                            <HiOutlineShoppingBag className='h-5 w-5 mr-2' />
-                            Cart {cartItemCount > 0 && `(${cartItemCount})`}
+                        <Link to="/cart" onClick={toggleNavDrawer} className='flex items-center text-gray-700 hover:text-black'>
+                            <HiOutlineShoppingBag className={`h-5 w-5 mr-2 ${location.pathname === '/cart' ? 'text-red-500 fill-red-500' : ''}`} />
+                            Cart
                         </Link>
-                        <Link to="/favorites" onClick={toggleNavDrawer} className='block text-gray-700 hover:text-black flex items-center'>
-                            <HiOutlineHeart className='h-5 w-5 mr-2' />
-                            Favorites
+                        <Link to="/wishlist" onClick={toggleNavDrawer} className='flex items-center text-gray-700 hover:text-black'>
+                            <HiOutlineHeart className={`h-5 w-5 mr-2 ${location.pathname === '/wishlist' ? 'text-red-500 fill-red-500' : ''}`} />
+                            Wishlist
                         </Link>
                     </nav>
                 </div>

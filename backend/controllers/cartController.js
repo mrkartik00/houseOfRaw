@@ -1,5 +1,5 @@
 import Cart from "../models/cartModel.js";
-import Product from "../models/productModel.js";
+import Product from "../models/productmodel.js";
 
 // Utility: Add totalItems and totalPrice to cart
 const getCartSummary = (cart) => {

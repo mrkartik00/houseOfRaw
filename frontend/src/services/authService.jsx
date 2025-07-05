@@ -19,23 +19,21 @@ export const registerUser = async (name, email, password, phone) => {
 
 export const getUserDetails = async () => {
   const token = localStorage.getItem('token');
-
   const res = await axiosInstance.get('/api/user/details', {
-    headers: {
-      token,
-    },
+    headers: { token }
   });
-
   return res.data;
 };
 
-export const updateUserDetails = async (formData, token) => {
+export const updateUserDetails = async (formData) => {
+  const token = localStorage.getItem('token');
   return axiosInstance.put('/api/user/update', formData, {
     headers: { token }
   });
 };
 
-export const updateUserPassword = async (passwordData, token) => {
+export const updateUserPassword = async (passwordData) => {
+  const token = localStorage.getItem('token');
   return axiosInstance.put('/api/user/update-password', passwordData, {
     headers: { token }
   });
@@ -47,3 +45,18 @@ export const loginAdmin = async (email, password) => {
   return response.data;
 };
 
+export const toggleWishlist = async (productId) => {
+  const token = localStorage.getItem('token');
+  const response = await axiosInstance.post('/api/user/wishlist', { productId }, {
+    headers: { token }
+  });
+  return response.data;
+};
+
+export const fetchWishlist = async () => {
+  const token = localStorage.getItem('token');
+  const res = await axiosInstance.get('/api/user/wishlist', {
+    headers: { token }
+  });
+  return res.data;
+};

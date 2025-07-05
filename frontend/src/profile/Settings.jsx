@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from "sonner";
-import { updateUserDetails, updateUserPassword } from "../services/authService";
+import { updateUserDetails, updateUserPassword, getUserDetails } from "../services/authService";
 import { useEffect } from 'react';
 
 const Settings = () => {
@@ -34,7 +34,7 @@ const Settings = () => {
   const handleSaveChanges = async () => {
     try {
       const { name, email, phone } = form;
-      const res = await updateUserDetails({ name, email, phone }, token);
+      const res = await updateUserDetails({ name, email, phone });
       console.log("Update response:", res.data);
 
       if (res.data.success) {
@@ -82,13 +82,14 @@ const Settings = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await getUserDetails(token);
-        if (res.data.success) {
-          const { name, email, phone } = res.data.user;
+        const res = await getUserDetails();
+        if (res.success) {
+          const { name, email, phone } = res.user;
           setForm((prev) => ({ ...prev, name, email, phone }));
         }
       } 
-      catch (err) {
+      catch (error) {
+        console.error("Failed to fetch user details:", error);
         toast.error("Failed to fetch user details");
       }
     };

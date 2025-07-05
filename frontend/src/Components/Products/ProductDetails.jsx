@@ -1,11 +1,11 @@
-// pages/ProductDetails.js
+// pages/ProductDetails.jsx
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { fetchSingleProduct, fetchRelatedProducts } from '../../services/productService';
+import { useWishlist } from '../../context/WishlistContext';
 import { FaStar, FaTag, FaList, FaRulerCombined } from 'react-icons/fa';
 import { toast } from 'sonner';
 import { Heart } from 'lucide-react';
-import { useFavorites } from '../../context/FavoritesContext';
 import { useCart } from '../../context/CartContext';
 
 const ProductDetails = () => {
@@ -17,10 +17,10 @@ const ProductDetails = () => {
   const [selectedColor, setSelectedColor] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState([]);
 
   const { addToCart, loading: cartLoading } = useCart();
+  const { isInWishlist, toggleWishlistItem } = useWishlist();
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -37,6 +37,7 @@ const ProductDetails = () => {
         }
       } catch (error) {
         toast.error("Failed to load product");
+        console.error("Product loading error:", error);
       }
     };
 
@@ -57,6 +58,11 @@ const ProductDetails = () => {
       setMainImage(product.image[currentIndex]);
     }
   }, [currentIndex, product]);
+
+  useEffect(() => {
+    // Wishlist state is now handled by WishlistContext
+    // No need to fetch separately
+  }, [id]);
 
   const increment = () => {
     if (product && quantity < product.stock) {
@@ -96,7 +102,9 @@ const ProductDetails = () => {
     }
   };
 
-  const toggleFavorite = () => setIsFavorite(!isFavorite);
+  const handleToggleFavorite = async () => {
+    await toggleWishlistItem(product._id);
+  };
 
   if (!product) return <div className='p-6 text-center'>Loading...</div>;
 
@@ -104,7 +112,7 @@ const ProductDetails = () => {
     <div className='p-4 sm:p-6 lg:p-10 bg-[#c9c9bf4d] min-h-screen'>
       <div className='max-w-6xl mx-auto bg-[#c9c9bf46] p-6 sm:p-10 rounded-lg shadow-md'>
         <div className='flex flex-col md:flex-row'>
-
+          {/* Thumbnails */}
           <div className='hidden md:flex flex-col space-y-4 mr-6'>
             {product.image.map((img, index) => (
               <img
@@ -120,6 +128,7 @@ const ProductDetails = () => {
             ))}
           </div>
 
+          {/* Main Image */}
           <div className='md:w-1/2'>
             <img
               src={mainImage}
@@ -128,6 +137,7 @@ const ProductDetails = () => {
             />
           </div>
 
+          {/* Mobile thumbnails */}
           <div className='md:hidden flex overflow-x-scroll gap-3 mb-4 scrollbar-hide'>
             {product.image.map((img, index) => (
               <img
@@ -143,17 +153,18 @@ const ProductDetails = () => {
             ))}
           </div>
 
+          {/* Product Info */}
           <div className='md:w-1/2 md:ml-10'>
             <div className='flex items-center justify-between mb-2'>
               <h1 className='text-3xl font-bold'>{product.name}</h1>
               <button
-                onClick={toggleFavorite}
+                onClick={handleToggleFavorite}
                 className='p-2 border rounded-full hover:bg-gray-100 transition'
-                title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                title={isInWishlist(product._id) ? 'Remove from favorites' : 'Add to favorites'}
               >
                 <Heart
                   size={20}
-                  className={`${isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-500'} transition-colors duration-200`}
+                  className={`${isInWishlist(product._id) ? 'text-red-500 fill-red-500' : 'text-white stroke-gray-400'} transition-colors duration-200`}
                 />
               </button>
             </div>
@@ -171,7 +182,7 @@ const ProductDetails = () => {
               </p>
             </div>
 
-            {/* Color selection */}
+            {/* Color */}
             <div className='mb-4'>
               <p className='text-gray-700 font-medium'>Color</p>
               <div className='flex mt-2 gap-3'>
@@ -200,7 +211,7 @@ const ProductDetails = () => {
               {selectedColor && <p className='text-sm text-gray-500 mt-1'>Selected: {selectedColor}</p>}
             </div>
 
-            {/* Size selection */}
+            {/* Size */}
             <div className='mb-4'>
               <p className='text-gray-700 font-medium'>Size</p>
               <div className='flex gap-2 mt-2'>
@@ -216,7 +227,7 @@ const ProductDetails = () => {
               </div>
             </div>
 
-            {/* Quantity and Add to Cart */}
+            {/* Quantity & Cart */}
             <div className='mb-6'>
               <p className='text-gray-700 font-medium'>Quantity</p>
               <div className='flex items-center space-x-4 mt-2'>

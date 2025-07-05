@@ -57,13 +57,15 @@ const OrderConfirmationPage = () => {
               <div className="flex items-center gap-4">
                 <img
                   src={item.product?.image?.[0] || "/placeholder.png"}
-                  alt={item.product?.name}
+                  alt={item.product?.name || "Product"}
                   className="w-20 h-20 object-cover rounded-md border"
                 />
                 <div>
-                  <h4 className="text-md font-semibold text-gray-800">{item.product?.name}</h4>
+                  <h4 className="text-md font-semibold text-gray-800">
+                    {item.product?.name || "Product Name"}
+                  </h4>
                   <p className="text-sm text-gray-500 capitalize">
-                    {item.variant?.color} | Size: {item.variant?.size}
+                    {item.variant?.color || "N/A"} | Size: {item.variant?.size || "N/A"}
                   </p>
                 </div>
               </div>
@@ -75,6 +77,16 @@ const OrderConfirmationPage = () => {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Order Total */}
+        <div className="bg-gray-50 p-6 rounded-lg mb-8">
+          <div className="flex justify-between items-center text-lg">
+            <span className="font-semibold text-gray-800">Order Total:</span>
+            <span className="font-bold text-xl text-emerald-600">
+              ₹{order.totalAmount?.toLocaleString() || '0'}
+            </span>
+          </div>
         </div>
 
         {/* Payment & Delivery Info */}

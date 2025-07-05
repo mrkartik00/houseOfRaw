@@ -2,6 +2,7 @@ import validator from "validator";
 import JsonWebToken from "jsonwebtoken";
 import User from "../models/usermodel.js";
 import jwt from "jsonwebtoken";
+import productModel from "../models/productmodel.js";
 
 // Create JWT token function
 const createToken = (id) => {
@@ -241,6 +242,190 @@ const adminLogin = async (req, res) => {
 };
 
 
+// Toggle wishlist: add if not present, remove if already there
+const toggleWishlist = async (req, res) => {
+  try {
+    const userId = req.userId; // Using req.userId set by auth middleware
+    const { productId } = req.body;
+
+    if (!productId) {
+      return res.status(400).json({ message: "Product ID is required." });
+    }
+
+    const productExists = await productModel.findById(productId);
+    if (!productExists) {
+      return res.status(404).json({ message: "Product not found." });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    const index = user.wishlist.indexOf(productId);
+    if (index > -1) {
+      // Already in wishlist → remove
+      user.wishlist.splice(index, 1);
+    } else {
+      // Not in wishlist → add
+      user.wishlist.push(productId);
+    }
+
+    await user.save();
+
+    return res.status(200).json({
+      message: index > -1 ? "Removed from wishlist" : "Added to wishlist",
+      wishlist: user.wishlist,
+    });
+  } catch (error) {
+    console.error("Wishlist toggle error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+const getWishlist = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).populate('wishlist');
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      wishlist: user.wishlist,
+    });
+  } catch (error) {
+    console.error("Error fetching wishlist:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch wishlist" });
+  }
+};
+
+// Add shipping address
+const addShippingAddress = async (req, res) => {
+  try {
+    const { firstName, lastName, address, city, state, pincode, country, phone } = req.body;
+
+    // Validate required fields
+    if (!firstName || !lastName || !address || !city || !state || !pincode || !country || !phone) {
+      return res.status(400).json({
+        success: false,
+        message: "All address fields are required"
+      });
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Create address object matching the schema
+    const newAddress = {
+      fullName: `${firstName} ${lastName}`,
+      mobile: phone,
+      street: address,
+      city,
+      state,
+      pincode,
+      country
+    };
+
+    user.addresses.push(newAddress);
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Shipping address added successfully",
+      address: newAddress
+    });
+  } catch (error) {
+    console.error("Error adding shipping address:", error);
+    res.status(500).json({ success: false, message: "Failed to add shipping address" });
+  }
+};
+
+// Get user addresses
+const getUserAddresses = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      addresses: user.addresses
+    });
+  } catch (error) {
+    console.error("Error fetching addresses:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch addresses" });
+  }
+};
+
+// Update shipping address
+const updateShippingAddress = async (req, res) => {
+  try {
+    const { addressIndex } = req.params;
+    const { firstName, lastName, address, city, state, pincode, country, phone } = req.body;
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    if (addressIndex >= user.addresses.length) {
+      return res.status(404).json({ success: false, message: "Address not found" });
+    }
+
+    // Update address
+    user.addresses[addressIndex] = {
+      fullName: `${firstName} ${lastName}`,
+      mobile: phone,
+      street: address,
+      city,
+      state,
+      pincode,
+      country
+    };
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Shipping address updated successfully",
+      address: user.addresses[addressIndex]
+    });
+  } catch (error) {
+    console.error("Error updating shipping address:", error);
+    res.status(500).json({ success: false, message: "Failed to update shipping address" });
+  }
+};
+
+// Delete shipping address
+const deleteShippingAddress = async (req, res) => {
+  try {
+    const { addressIndex } = req.params;
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    if (addressIndex >= user.addresses.length) {
+      return res.status(404).json({ success: false, message: "Address not found" });
+    }
+
+    user.addresses.splice(addressIndex, 1);
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Shipping address deleted successfully"
+    });
+  } catch (error) {
+    console.error("Error deleting shipping address:", error);
+    res.status(500).json({ success: false, message: "Failed to delete shipping address" });
+  }
+};
+
 
 export {
   registerUser,
@@ -251,4 +436,10 @@ export {
   updateUserPassword,
   deleteUserAccount,
   adminLogin,
+  toggleWishlist,
+  getWishlist,
+  addShippingAddress,
+  getUserAddresses,
+  updateShippingAddress,
+  deleteShippingAddress,
 };
