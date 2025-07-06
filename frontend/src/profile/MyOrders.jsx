@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { ChevronDownIcon, ChevronRightIcon, StarIcon } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import ReviewModal from "../Components/Common/ReviewModal";
+import { PaymentStatusBadge, PaymentMethodIcon } from "../Components/Common/PaymentStatus";
+import { formatPaymentAmount } from "../utils/razorpayUtils";
 
 const MyOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -111,7 +113,7 @@ const MyOrders = () => {
                         {order.orderItems?.length || 0}
                       </td>
                       <td className='py-2 px-2 sm:py-4 sm:px-4 font-semibold'>
-                        ₹{order.totalAmount?.toFixed(2) || "0.00"}
+                        {formatPaymentAmount(order.totalAmount || 0)}
                       </td>
                       <td className='py-2 px-2 sm:py-4 sm:px-4'>
                         <span
@@ -158,12 +160,16 @@ const MyOrders = () => {
                               <h4 className="text-lg font-semibold text-gray-800">Order Details</h4>
                               <div className="space-y-2 text-sm">
                                 <p><span className="font-medium">Order Date:</span> {new Date(order.createdAt).toLocaleDateString()} at {new Date(order.createdAt).toLocaleTimeString()}</p>
-                                <p><span className="font-medium">Payment Method:</span> {order.paymentMethod || "N/A"}</p>
+                                <p><span className="font-medium">Payment Method:</span> <PaymentMethodIcon method={order.paymentMethod} /></p>
                                 <p><span className="font-medium">Payment Status:</span> 
-                                  <span className={`ml-2 px-2 py-1 rounded-full text-xs ${order.isPaid ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
-                                    {order.isPaid ? 'Paid' : 'Unpaid'}
-                                  </span>
+                                  <PaymentStatusBadge 
+                                    status={order.isPaid ? 'paid' : 'unpaid'} 
+                                    showAmount={false}
+                                  />
                                 </p>
+                                {order.razorpayOrderId && (
+                                  <p><span className="font-medium">Payment ID:</span> {order.razorpayOrderId}</p>
+                                )}
                                 {order.trackingNumber && (
                                   <p><span className="font-medium">Tracking Number:</span> {order.trackingNumber}</p>
                                 )}
@@ -245,7 +251,7 @@ const MyOrders = () => {
                               <div className="border-t pt-3">
                                 <div className="flex justify-between items-center font-semibold text-lg">
                                   <span>Total Amount:</span>
-                                  <span className="text-green-600">₹{order.totalAmount}</span>
+                                  <span className="text-green-600">{formatPaymentAmount(order.totalAmount)}</span>
                                 </div>
                               </div>
                             </div>
