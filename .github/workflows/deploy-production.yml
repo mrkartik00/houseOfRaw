@@ -1,4 +1,4 @@
-name: Deploy to Production
+name: Deploy House of Raw
 
 on:
   push:
@@ -8,74 +8,37 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
-    name: Build and Deploy to Digital Ocean
+  deploy:
+    name: Deploy to Production
     runs-on: ubuntu-latest
     
     steps:
-      - name: 🔄 Checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: 📦 Build Frontend
-        working-directory: ./frontend
-        run: |
-          npm ci
-          npm run build
-        env:
-          VITE_API_URL: https://api.houseofraw.tech
-          VITE_RAZORPAY_KEY_ID: ${{ secrets.RAZORPAY_KEY_ID }}
-          VITE_APP_NAME: House of Raw
-
-      - name: 🚀 Deploy to Digital Ocean
+      - name: Deploy to Server
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
-            echo "🔄 Deploying House of Raw..."
+            echo "🚀 Deploying House of Raw..."
             
             cd ${{ secrets.DEPLOY_PATH }}
-            
-            # Pull latest code
-            echo "📥 Pulling latest code..."
             git pull origin main
             
-            # Deploy Backend
-            echo "🔧 Deploying Backend..."
+            # Backend
+            echo "📦 Updating Backend..."
             cd backend
             npm install --production
-            pm2 restart houseofraw-api || pm2 start server.js --name houseofraw-api --env production
+            pm2 restart houseofraw-api
             
-            # Deploy Frontend
-            echo "🎨 Deploying Frontend..."
+            # Frontend
+            echo "🎨 Building Frontend..."
             cd ../frontend
             npm install
             npm run build
             
-            # Reload Nginx
-            echo "🔄 Reloading Nginx..."
-            sudo systemctl reload nginx
-            
-            # Show status
-            echo "✅ Deployment Status:"
+            echo "✅ Deployment Complete!"
             pm2 status
-            
-            echo "🎉 Deployment completed successfully!"
-
-      - name: 📊 Deployment Status
-        if: always()
-        run: |
-          if [ ${{ job.status }} == 'success' ]; then
-            echo "✅ Deployment successful!"
-            echo "🌐 Frontend: https://houseofraw.tech"
-            echo "🔌 API: https://api.houseofraw.tech"
-          else
-            echo "❌ Deployment failed! Check logs above."
-            exit 1
-          fi
