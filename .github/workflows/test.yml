@@ -1,0 +1,66 @@
+name: Test and Lint
+
+on:
+  pull_request:
+    branches: [main, master]
+  push:
+    branches: [develop, staging]
+
+jobs:
+  test-backend:
+    name: Test Backend
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Run linter
+        working-directory: ./backend
+        run: npm run lint --if-present
+
+      - name: Run tests
+        working-directory: ./backend
+        run: npm test --if-present
+        env:
+          NODE_ENV: test
+
+  test-frontend:
+    name: Test Frontend
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Run linter
+        working-directory: ./frontend
+        run: npm run lint --if-present
+
+      - name: Build check
+        working-directory: ./frontend
+        run: npm run build
+        env:
+          VITE_API_URL: https://api.houseofraw.tech
+
+      - name: Run tests
+        working-directory: ./frontend
+        run: npm test --if-present

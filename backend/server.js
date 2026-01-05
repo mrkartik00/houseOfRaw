@@ -10,7 +10,7 @@ import orderRouter from "./routes/orderRoutes.js";
 import reviewRouter from "./routes/reviewRoutes.js";
 
 const app = express();  
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 7000;
 
 //  Connect db and cloudinary
 connectDB();
