@@ -1,7 +1,7 @@
 // services/productService.js
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:7000/api/products'; // Update if your backend runs on a different port or route
+const BASE_URL = `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:7000'}/api/products`;
 
 export const fetchAllProducts = async (params = {}) => {
   const query = new URLSearchParams(params).toString();
@@ -12,7 +12,7 @@ export const fetchAllProducts = async (params = {}) => {
 
 
 export const fetchSingleProduct = async (id) => {
-  const response = await axios.get(`http://localhost:7000/api/products/single`, {
+  const response = await axios.get(`${BASE_URL}/single`, {
     params: { id }, // ✅ passed as query param
   });
   return response.data.product;
@@ -49,7 +49,7 @@ export const removeProduct = async (id, token) => {
 
 export const updateProduct = async (formData, token, id) => {
   const response = await axios.put(
-    `http://localhost:7000/api/products/update/${id}`,
+    `${BASE_URL}/update/${id}`,
     formData,
     {
       headers: {
