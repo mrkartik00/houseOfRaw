@@ -23,6 +23,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
+            set -e
             echo "🚀 Deploying House of Raw..."
             
             cd ${{ secrets.DEPLOY_PATH }}
@@ -42,3 +43,4 @@ jobs:
             
             echo "✅ Deployment Complete!"
             pm2 status
+            exit 0
