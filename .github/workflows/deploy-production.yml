@@ -18,13 +18,12 @@ jobs:
 
       - name: Deploy to Server
         uses: appleboy/ssh-action@v1.0.0
-        continue-on-error: true
-        id: deploy
+        # continue-on-error: true
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
-          script_stop: false
+          script_stop: true
           script: |
             set -e
             echo "🚀 Deploying House of Raw..."
@@ -36,25 +35,13 @@ jobs:
             echo "📦 Updating Backend..."
             cd backend
             npm install --production
-            pm2 restart houseofraw-api --update-env
+            pm2 restart houseofraw-api
             
             # Frontend
             echo "🎨 Building Frontend..."
             cd ../frontend
-            
-            # Create .env.production with environment variables
-            echo "VITE_BACKEND_URL=${{ secrets.VITE_BACKEND_URL }}" > .env.production
-            echo "VITE_RAZORPAY_KEY_ID=${{ secrets.VITE_RAZORPAY_KEY_ID }}" >> .env.production
-            echo "VITE_APP_NAME=House of Raw" >> .env.production
-            
             npm install
             npm run build
             
             echo "✅ Deployment Complete!"
             pm2 status
-      
-      - name: Check Deployment Status
-        if: steps.deploy.outcome == 'failure'
-        run: |
-          echo "⚠️ Deployment had issues but continuing..."
-          echo "Check the logs above for details"
