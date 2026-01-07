@@ -18,7 +18,6 @@ jobs:
 
       - name: Deploy to Server
         uses: appleboy/ssh-action@v1.0.0
-        # continue-on-error: true
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
@@ -28,18 +27,24 @@ jobs:
             set -e
             echo "🚀 Deploying House of Raw..."
             
-            cd ${{ secrets.DEPLOY_PATH }}
+            cd /var/www/houseofraw
             git pull origin main
             
             # Backend
             echo "📦 Updating Backend..."
-            cd backend
+            cd /var/www/houseofraw/backend
             npm install --production
-            pm2 restart houseofraw-api
+            pm2 restart houseofraw-api --update-env
             
             # Frontend
             echo "🎨 Building Frontend..."
-            cd ../frontend
+            cd /var/www/houseofraw/frontend
+            
+            # Create .env.production with environment variables
+            echo "VITE_BACKEND_URL=${{ secrets.VITE_BACKEND_URL }}" > .env.production
+            echo "VITE_RAZORPAY_KEY_ID=${{ secrets.VITE_RAZORPAY_KEY_ID }}" >> .env.production
+            echo "VITE_APP_NAME=House of Raw" >> .env.production
+            
             npm install
             npm run build
             
