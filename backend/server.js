@@ -17,7 +17,24 @@ connectDB();
 connectCloudinary();
 
 //  Middleware
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+// CORS - Allow multiple origins from environment variable
+const allowedOrigins = process.env.WHITELIST 
+  ? process.env.WHITELIST.split(',').map(origin => origin.trim())
+  : ['http://localhost:5173'];
+
+app.use(cors({ 
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true 
+}));
 app.use(express.json()); // parse application/json
 app.use(express.urlencoded({ extended: true })); // parse x-www-form-urlencoded
 

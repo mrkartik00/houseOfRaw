@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:7000", // Your Node.js backend port
+  baseURL: import.meta.env.VITE_BACKEND_URL || "http://localhost:7000",
   withCredentials: true, // only if using cookies
 });
 

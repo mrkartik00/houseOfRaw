@@ -6,7 +6,7 @@ const BASE_URL = 'http://localhost:7000/api/products'; // Update if your backend
 export const fetchAllProducts = async (params = {}) => {
   const query = new URLSearchParams(params).toString();
   const response = await axios.get(`/api/products?${query}`);
-  return response.data;
+  return response.data.products || [];
 };
 
 
@@ -19,7 +19,7 @@ export const fetchSingleProduct = async (id) => {
 
 export const fetchRelatedProducts = async (id) => {
   const res = await axios.get(`/api/products/related/${id}`);
-  return res.data;
+  return res.data.relatedProducts || [];
 };
 
 export const addProduct = async (formData, token) => {

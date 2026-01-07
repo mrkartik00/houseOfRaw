@@ -31,8 +31,8 @@ const ProductDetails = () => {
         if (data.image?.[0]) setMainImage(data.image[0]);
 
         const relatedRes = await fetchRelatedProducts(id);
-        if (relatedRes.success && Array.isArray(relatedRes.relatedProducts)) {
-          setRelatedProducts(relatedRes.relatedProducts);
+        if (Array.isArray(relatedRes)) {
+          setRelatedProducts(relatedRes);
         } else {
           setRelatedProducts([]);
         }
