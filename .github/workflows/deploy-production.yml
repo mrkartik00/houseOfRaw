@@ -40,6 +40,12 @@ jobs:
             # Frontend
             echo "🎨 Building Frontend..."
             cd ../frontend
+            
+            # Create .env.production with environment variables
+            echo "VITE_BACKEND_URL=${{ secrets.VITE_BACKEND_URL }}" > .env.production
+            echo "VITE_RAZORPAY_KEY_ID=${{ secrets.VITE_RAZORPAY_KEY_ID }}" >> .env.production
+            echo "VITE_APP_NAME=House of Raw" >> .env.production
+            
             npm install
             npm run build
             
