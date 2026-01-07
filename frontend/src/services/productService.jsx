@@ -5,7 +5,7 @@ const BASE_URL = `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:7000'}
 
 export const fetchAllProducts = async (params = {}) => {
   const query = new URLSearchParams(params).toString();
-  const response = await axios.get(`/api/products?${query}`);
+  const response = await axios.get(`${BASE_URL}?${query}`);
   // API returns array directly, not wrapped in { products: [] }
   return Array.isArray(response.data) ? response.data : (response.data.products || []);
 };
@@ -19,7 +19,7 @@ export const fetchSingleProduct = async (id) => {
 };
 
 export const fetchRelatedProducts = async (id) => {
-  const res = await axios.get(`/api/products/related/${id}`);
+  const res = await axios.get(`${BASE_URL}/related/${id}`);
   return res.data.relatedProducts || [];
 };
 
